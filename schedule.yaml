@@ -1,0 +1,14 @@
+jobs:
+  - name: weekly-product-update
+    cron: "0 9 * * MON"
+    type: topic
+    topic: "Weekly product update"
+    details: "Highlight one customer win and one new Nemotron capability shipped this week."
+    platforms: [linkedin, x]
+
+  - name: blog-rss-poll
+    cron: "*/30 * * * *"
+    type: rss
+    feed: "https://blogs.nvidia.com/feed/"
+    limit: 2
+    platforms: [linkedin, x, instagram]
