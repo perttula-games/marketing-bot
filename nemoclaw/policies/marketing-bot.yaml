@@ -1,0 +1,101 @@
+# SPDX-License-Identifier: MIT
+# Network policy preset for the marketing-bot sandbox.
+# Apply with: nemoclaw <name> policy-add marketing-bot
+
+preset:
+  name: marketing-bot
+  description: "Egress for NVIDIA Nemotron + LinkedIn/X/Instagram publishing APIs and common RSS hosts"
+
+network_policies:
+  nvidia-inference:
+    name: nvidia-inference
+    endpoints:
+      - host: integrate.api.nvidia.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/v1/**" }
+          - allow: { method: GET,  path: "/v1/**" }
+
+  linkedin:
+    name: linkedin
+    endpoints:
+      - host: api.linkedin.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/v2/ugcPosts" }
+          - allow: { method: POST, path: "/rest/posts" }
+          - allow: { method: GET,  path: "/v2/me" }
+          - allow: { method: POST, path: "/v2/assets**" }
+      - host: www.linkedin.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/oauth/v2/accessToken" }
+
+  x-api:
+    name: x-api
+    endpoints:
+      - host: api.x.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/2/tweets" }
+          - allow: { method: GET,  path: "/2/tweets/**" }
+          - allow: { method: GET,  path: "/2/users/me" }
+      - host: api.twitter.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/2/tweets" }
+          - allow: { method: GET,  path: "/2/tweets/**" }
+      - host: upload.twitter.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/1.1/media/upload.json" }
+
+  instagram-graph:
+    name: instagram-graph
+    endpoints:
+      - host: graph.facebook.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/v*/**/media" }
+          - allow: { method: POST, path: "/v*/**/media_publish" }
+          - allow: { method: GET,  path: "/v*/**" }
+
+  rss-feeds:
+    name: rss-feeds
+    description: "Common RSS/Atom hosts polled by the scheduler. Extend as needed."
+    endpoints:
+      - host: blogs.nvidia.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: GET, path: "/**" }
+      - host: feeds.feedburner.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: GET, path: "/**" }

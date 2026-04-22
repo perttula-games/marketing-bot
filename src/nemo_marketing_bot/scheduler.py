@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 STATE_FILE = Path(".schedule.json")
 
 
-def _job_from_rss(feed_url: str, platforms: list[Platform], limit: int) -> None:
+def _job_from_rss(feed_url: str, platforms: list[Platform], limit: int, auto_publish: bool) -> None:
     since = _load_last_run(feed_url)
     now = datetime.now(UTC)
     briefs = briefs_from_rss(feed_url, limit=limit, since=since)
@@ -30,14 +30,14 @@ def _job_from_rss(feed_url: str, platforms: list[Platform], limit: int) -> None:
         _save_last_run(feed_url, now)
         return
     for brief in briefs:
-        logger.info("RSS job: processing '%s'", brief.topic)
-        run_once(brief, platforms)
+        logger.info("RSS job: processing '%s' (auto_publish=%s)", brief.topic, auto_publish)
+        run_once(brief, platforms, auto_publish=auto_publish)
     _save_last_run(feed_url, now)
 
 
-def _job_from_topic(topic: str, details: str, platforms: list[Platform]) -> None:
+def _job_from_topic(topic: str, details: str, platforms: list[Platform], auto_publish: bool) -> None:
     brief = brief_from_cli(topic=topic, details=details)
-    run_once(brief, platforms)
+    run_once(brief, platforms, auto_publish=auto_publish)
 
 
 def _load_last_run(key: str) -> datetime | None:
@@ -94,12 +94,13 @@ def _register_job(scheduler: BlockingScheduler, job: dict[str, Any]) -> None:
     trigger = CronTrigger.from_crontab(job["cron"], timezone=settings.timezone)
     platforms: list[Platform] = job.get("platforms") or ALL_PLATFORMS
     job_type = job["type"]
+    auto_publish = bool(job.get("auto_publish", False))
 
     if job_type == "rss":
         scheduler.add_job(
             _job_from_rss,
             trigger=trigger,
-            args=[job["feed"], platforms, int(job.get("limit", 2))],
+            args=[job["feed"], platforms, int(job.get("limit", 2)), auto_publish],
             id=name,
             name=name,
             max_instances=1,
@@ -109,7 +110,7 @@ def _register_job(scheduler: BlockingScheduler, job: dict[str, Any]) -> None:
         scheduler.add_job(
             _job_from_topic,
             trigger=trigger,
-            args=[job["topic"], job.get("details", ""), platforms],
+            args=[job["topic"], job.get("details", ""), platforms, auto_publish],
             id=name,
             name=name,
             max_instances=1,
@@ -118,4 +119,7 @@ def _register_job(scheduler: BlockingScheduler, job: dict[str, Any]) -> None:
     else:
         raise ValueError(f"Unknown job type: {job_type}")
 
-    logger.info("Registered job '%s' (%s) cron=%s platforms=%s", name, job_type, job["cron"], platforms)
+    logger.info(
+        "Registered job '%s' (%s) cron=%s platforms=%s auto_publish=%s",
+        name, job_type, job["cron"], platforms, auto_publish,
+    )
