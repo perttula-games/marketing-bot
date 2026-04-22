@@ -271,5 +271,18 @@ def review_publish(draft_id: str = typer.Argument(...)) -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("telegram-approve")
+def telegram_approve() -> None:
+    """Run the Telegram approval bot.
+
+    Approvers get a message per pending draft with inline buttons for
+    approve/reject/publish, quick-edit, and free-form AI-assisted revision.
+    Requires TELEGRAM_BOT_TOKEN and TELEGRAM_APPROVER_CHAT_IDS in .env.
+    """
+    from .telegram_bot import run_telegram_bot
+
+    run_telegram_bot()
+
+
 if __name__ == "__main__":
     app()

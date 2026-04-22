@@ -45,10 +45,13 @@ CREATE TABLE IF NOT EXISTS drafts (
     hashtags     TEXT NOT NULL,  -- JSON array
     image_prompt TEXT,
     publish_id   TEXT,
-    publish_error TEXT
+    publish_error TEXT,
+    notified_at  TEXT,           -- when a notifier (e.g. Telegram) pushed this draft
+    notifier_ref TEXT            -- opaque ref (e.g. "chat_id:message_id")
 );
 CREATE INDEX IF NOT EXISTS idx_drafts_status ON drafts(status);
 CREATE INDEX IF NOT EXISTS idx_drafts_created ON drafts(created_at);
+CREATE INDEX IF NOT EXISTS idx_drafts_notified ON drafts(notified_at);
 
 CREATE TABLE IF NOT EXISTS edits (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,6 +93,12 @@ class ReviewStore:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         with self._conn() as conn:
             conn.executescript(_SCHEMA)
+            # Additive migrations for older databases.
+            for col, typ in (("notified_at", "TEXT"), ("notifier_ref", "TEXT")):
+                try:
+                    conn.execute(f"ALTER TABLE drafts ADD COLUMN {col} {typ}")
+                except sqlite3.OperationalError:
+                    pass  # column already exists
 
     @contextmanager
     def _conn(self) -> Iterator[sqlite3.Connection]:
@@ -236,6 +245,32 @@ class ReviewStore:
                     (draft_id,),
                 )
             )
+
+    # --- notifier helpers ----------------------------------------------
+
+    def list_unnotified_pending(self, limit: int = 20) -> list[DraftRecord]:
+        """Pending drafts that have not yet been pushed to a notifier."""
+        with self._conn() as conn:
+            rows = conn.execute(
+                "SELECT * FROM drafts WHERE status='pending' AND notified_at IS NULL "
+                "ORDER BY created_at ASC LIMIT ?",
+                (limit,),
+            ).fetchall()
+        return [_row_to_record(r) for r in rows]
+
+    def mark_notified(self, draft_id: str, ref: str) -> None:
+        with self._conn() as conn:
+            conn.execute(
+                "UPDATE drafts SET notified_at=?, notifier_ref=? WHERE id=?",
+                (_now_iso(), ref, draft_id),
+            )
+
+    def get_notifier_ref(self, draft_id: str) -> str | None:
+        with self._conn() as conn:
+            row = conn.execute(
+                "SELECT notifier_ref FROM drafts WHERE id=?", (draft_id,)
+            ).fetchone()
+        return row["notifier_ref"] if row else None
 
 
 def _row_to_record(row: sqlite3.Row) -> DraftRecord:
