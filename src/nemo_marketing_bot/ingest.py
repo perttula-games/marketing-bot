@@ -6,10 +6,16 @@ import logging
 from datetime import UTC, datetime
 
 import feedparser
+import httpx
 
 from .models import Brief
+from .security import assert_safe_url, sanitize_untrusted_text
 
 logger = logging.getLogger(__name__)
+
+# Cap on raw feed bytes we will parse, to avoid memory-exhaustion DoS from a
+# malicious or buggy feed. 5 MiB is plenty for any real RSS/Atom payload.
+MAX_FEED_BYTES = 5 * 1024 * 1024
 
 
 def brief_from_cli(
@@ -29,9 +35,20 @@ def brief_from_cli(
 
 
 def briefs_from_rss(feed_url: str, limit: int = 3, since: datetime | None = None) -> list[Brief]:
-    """Fetch an RSS/Atom feed and return the newest entries as briefs."""
+    """Fetch an RSS/Atom feed and return the newest entries as briefs.
+
+    The URL is validated against SSRF (no file://, no private/loopback IPs).
+    Entry text is sanitised before being embedded in any LLM prompt.
+    """
+    assert_safe_url(feed_url, label="feed_url")
     logger.info("Fetching RSS feed %s", feed_url)
-    parsed = feedparser.parse(feed_url)
+
+    # Fetch with httpx so we control timeout, redirect policy, and size cap.
+    # Allow redirects but re-validate every hop's destination.
+    with httpx.Client(timeout=15.0, follow_redirects=False) as client:
+        body = _fetch_with_safe_redirects(client, feed_url, hops_left=3)
+
+    parsed = feedparser.parse(body)
     if parsed.bozo and not parsed.entries:
         raise RuntimeError(f"Failed to parse feed {feed_url}: {parsed.bozo_exception}")
 
@@ -41,15 +58,48 @@ def briefs_from_rss(feed_url: str, limit: int = 3, since: datetime | None = None
         if since is not None and published is not None and published < since:
             continue
         summary = getattr(entry, "summary", "") or getattr(entry, "description", "")
+        link = getattr(entry, "link", None)
+        # If the entry has a link, validate it before we ever pass it to the
+        # generator (which would put it in a prompt and possibly a published post).
+        if link:
+            try:
+                assert_safe_url(link, label="entry.link")
+            except Exception as err:  # noqa: BLE001
+                logger.warning("Dropping unsafe entry link %s: %s", link, err)
+                link = None
         briefs.append(
             Brief(
-                topic=getattr(entry, "title", "Untitled"),
-                details=_strip_html(summary)[:1200],
-                url=getattr(entry, "link", None),
+                topic=sanitize_untrusted_text(getattr(entry, "title", "Untitled"), max_chars=300),
+                details=sanitize_untrusted_text(_strip_html(summary), max_chars=1200),
+                url=link,
                 tags=[t.term for t in getattr(entry, "tags", []) if hasattr(t, "term")],
             )
         )
     return briefs
+
+
+def _fetch_with_safe_redirects(client: httpx.Client, url: str, *, hops_left: int) -> bytes:
+    """Manually follow redirects, re-validating every Location header."""
+    current = url
+    while True:
+        resp = client.get(current, headers={"User-Agent": "nemo-marketing-bot/0.1"})
+        if resp.status_code in (301, 302, 303, 307, 308):
+            if hops_left <= 0:
+                raise RuntimeError(f"Too many redirects fetching {url}")
+            location = resp.headers.get("location")
+            if not location:
+                raise RuntimeError(f"Redirect from {current} without Location header")
+            # Resolve relative redirects against the current URL.
+            current = str(httpx.URL(current).join(location))
+            assert_safe_url(current, label="redirect")
+            hops_left -= 1
+            continue
+        resp.raise_for_status()
+        # Cap response size.
+        content = resp.content
+        if len(content) > MAX_FEED_BYTES:
+            raise RuntimeError(f"Feed body exceeds {MAX_FEED_BYTES} bytes")
+        return content
 
 
 def _entry_datetime(entry: object) -> datetime | None:

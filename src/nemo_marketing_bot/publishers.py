@@ -15,8 +15,9 @@ from typing import Protocol
 import httpx
 import tweepy
 
-from .config import settings
+from .config import ig_image_allowlist, settings
 from .models import GeneratedPost
+from .security import is_allowed_image_host
 
 logger = logging.getLogger(__name__)
 
@@ -114,7 +115,9 @@ class InstagramPublisher:
 
     def publish(self, post: GeneratedPost) -> str:
         body = post.render()
-        image_url = post.image_prompt if (post.image_prompt or "").startswith("http") else None
+        candidate = post.image_prompt if (post.image_prompt or "").startswith("http") else None
+        allowlist = ig_image_allowlist()
+        image_url = candidate if (candidate and is_allowed_image_host(candidate, allowlist)) else None
 
         if settings.dry_run:
             logger.info(
@@ -126,10 +129,19 @@ class InstagramPublisher:
             return "dry-run"
         if not settings.ig_access_token or not settings.ig_user_id:
             raise RuntimeError("Instagram credentials missing. See .env.example.")
+        if not allowlist:
+            raise RuntimeError(
+                "Instagram publishing blocked: IG_IMAGE_HOST_ALLOWLIST is empty. "
+                "Set it to the host(s) (e.g. cdn.example.com) where you serve post images."
+            )
+        if candidate and not image_url:
+            raise RuntimeError(
+                f"Instagram image_prompt host not in IG_IMAGE_HOST_ALLOWLIST: {candidate}"
+            )
         if not image_url:
             raise RuntimeError(
                 "Instagram feed posts require a public image URL. "
-                "Set post.image_prompt to a URL or extend the pipeline with an image generator."
+                "Set post.image_prompt to an https URL on an allowlisted host."
             )
 
         with httpx.Client(timeout=60) as client:

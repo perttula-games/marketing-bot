@@ -1,7 +1,7 @@
 [project]
 name = "nemo-marketing-bot"
 version = "0.1.0"
-description = "Marketing content bot powered by NVIDIA Nemotron that generates, schedules and publishes posts to LinkedIn, X and Instagram."
+description = "Game marketing bot powered by NVIDIA Nemotron that drafts channel content, plans creator outreach, schedules campaigns and publishes supported social posts."
 requires-python = ">=3.12"
 dependencies = [
     "openai==1.54.4",
@@ -18,6 +18,11 @@ dependencies = [
     "tenacity==9.0.0",
     "PyYAML==6.0.2",
     "python-telegram-bot==21.6",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.4",
 ]
 
 [project.scripts]

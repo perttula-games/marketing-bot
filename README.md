@@ -1,12 +1,16 @@
 # nemo-marketing-bot
 
 Marketing content bot that uses **NVIDIA Nemotron** (via the OpenAI-compatible
-`integrate.api.nvidia.com` endpoint) to generate platform-native posts for
-**LinkedIn**, **X** and **Instagram**, and can publish them on a cron schedule.
+`integrate.api.nvidia.com` endpoint) to generate platform-native game marketing
+drafts, plan creator outreach, and publish supported posts on a cron schedule.
 
 ## Features
 
 - Generates posts that follow each platform's rules (length, tone, hashtags).
+- Drafts manual-channel content for Steam, Discord, TikTok/Reels/Shorts,
+  YouTube, Reddit and Jodel.
+- Plans creator outreach by channel: target profile, search queries,
+  deliverables, acceptance criteria, metrics and reusable DM templates.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
 - Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
@@ -44,6 +48,43 @@ nemo-bot generate \
   --tags "AI,Nemotron,GenAI"
 ```
 
+Generate content for the broader manual game marketing stack:
+
+```bash
+nemo-bot generate \
+  --topic "Demo reveal" \
+  --details "Show the new combat mechanic and route people to the Steam wishlist." \
+  --platforms all-content
+```
+
+`all-content` includes LinkedIn, X, Instagram, Steam, Discord, TikTok, YouTube,
+Reddit and Jodel drafts. Only LinkedIn, X and Instagram have API publishers;
+the other channels are intentionally manual drafts.
+
+### Creator outreach and page setup
+
+Print the manual account/page checklist plus channel-specific creator targets:
+
+```bash
+nemo-bot creators plan \
+  --game "NemoClaw" \
+  --genre "PC indie/AA action game" \
+  --audience "PC and console players" \
+  --channels tiktok,youtube,instagram,twitch,lurkit,keymailer
+```
+
+Export the creator target matrix to a spreadsheet-friendly CSV:
+
+```bash
+nemo-bot creators export \
+  --output outreach/nemoclaw-creators.csv \
+  --game "NemoClaw" \
+  --genre "PC indie/AA action game"
+```
+
+Use this before manual page creation so every account has the same CTA, link
+tracking pattern, creator support path and deliverable expectations.
+
 ### Generate and publish
 
 ```bash
@@ -73,6 +114,7 @@ example included in the repo.
 src/nemo_marketing_bot/
   cli.py          # Typer entrypoint
   config.py       # pydantic-settings (.env)
+  creator_outreach.py # Creator search, setup checklists, outreach templates
   generator.py    # Nemotron call via OpenAI SDK
   ingest.py       # CLI + RSS -> Brief
   models.py       # Brief, GeneratedPost, PostBundle
@@ -87,6 +129,9 @@ src/nemo_marketing_bot/
   one in the post's `image_prompt` (when it starts with `http`). Extending the
   pipeline with an image generator (e.g. an NVIDIA NIM diffusion endpoint or
   an S3-hosted render) is a natural next step.
+- **TikTok, YouTube, Steam, Discord, Reddit and Jodel are draft-only channels.**
+  The bot creates the copy/script/checklist, then a human publishes or uploads
+  it manually through the platform UI.
 - **X free tier** allows ~17 posts/24h per user — don't wire up high-frequency
   RSS jobs without monitoring quota.
 - **LinkedIn tokens expire** (60 days typical). Rotate or automate refresh.

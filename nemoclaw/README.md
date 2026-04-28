@@ -49,12 +49,18 @@ nemoclaw marketingbot skill install nemoclaw/skills/marketing-bot
 # Chat with the marketing operator.
 nemoclaw marketingbot connect
 # Then: "Draft a LinkedIn post about the Nemotron 2 launch"
+# Or: "Plan creator outreach for NemoClaw on TikTok, YouTube and Keymailer"
 
 # Tail the scheduler log (background RSS + cron jobs).
 nemoclaw marketingbot logs --follow
 
 # Health check.
 nemoclaw marketingbot status
+
+# From the repo or sandbox shell, build the creator plan / CSV.
+nemo-bot creators plan --game "NemoClaw" --genre "PC indie/AA action game"
+nemo-bot creators export --output outreach/nemoclaw-creators.csv \
+  --game "NemoClaw" --genre "PC indie/AA action game"
 
 # Snapshot before risky changes (e.g. before flipping DRY_RUN=false).
 nemoclaw marketingbot snapshot create

@@ -1,6 +1,6 @@
 ---
 name: "marketing-bot"
-description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, and Instagram posts using NVIDIA Nemotron. Use when the user asks to draft a post, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, and safe publish workflow."
+description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, and Instagram posts, draft manual game marketing channels, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, creator outreach planning, and safe publish workflow."
 ---
 
 <!-- Marketing bot skill for NemoClaw sandboxes -->
@@ -11,13 +11,14 @@ Operate the installed `nemo-marketing-bot` package (CLI entrypoint: `nemo-bot`) 
 
 ## Context
 
-The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It uses NVIDIA Nemotron (via `integrate.api.nvidia.com`) to draft posts for LinkedIn, X, and Instagram, and publishes them through each platform's official API.
+The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It uses NVIDIA Nemotron (via `integrate.api.nvidia.com`) to draft posts for LinkedIn, X, Instagram, Steam, Discord, TikTok/Reels/Shorts, YouTube, Reddit and Jodel. LinkedIn, X and Instagram can be published through official APIs; the other channels are manual drafts.
 
 All credentials live in `/sandbox/.env` (loaded by pydantic-settings). The agent MUST NOT print secrets back to the user; refer to them by name only.
 
 ## When to Use
 
 - User asks to draft, review, or publish a social post.
+- User asks to plan creator outreach, content creators, influencer seeding, Lurkit/Keymailer work, or manual channel setup.
 - User asks about an announcement, product update, release, or customer story.
 - User wants to start, pause, or edit a recurring campaign.
 - User shares a blog/article URL and wants it turned into posts.
@@ -30,9 +31,12 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 | Command | Purpose |
 |---|---|
 | `nemo-bot generate --topic "<t>" --details "<d>" [--url <u>] [--tags a,b]` | Draft posts without publishing. Always run this first. |
+| `nemo-bot generate --topic "<t>" --details "<d>" --platforms all-content` | Draft the broader manual stack: LinkedIn, X, Instagram, Steam, Discord, TikTok, YouTube, Reddit and Jodel. |
 | `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,x` | Generate AND publish. Requires `DRY_RUN=false`. |
 | `nemo-bot from-rss --feed <url> --limit N [--publish]` | Turn latest feed items into posts. |
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
+| `nemo-bot creators plan --game "<name>" --genre "<genre>" [--channels tiktok,youtube,lurkit]` | Print manual page setup tasks, creator target profiles, search queries, deliverables, metrics and outreach templates. |
+| `nemo-bot creators export --output creator-outreach.csv --game "<name>"` | Export creator target matrix to CSV for manual outreach tracking. |
 
 ## Safe Publish Workflow
 
@@ -53,6 +57,17 @@ The generator already enforces these in its system prompt, but verify before pub
 - **LinkedIn**: 1–3 short paragraphs, 3–5 hashtags at the end, first line is a hook, no emoji spam. Optional link at the end.
 - **X**: single post, ≤ 280 chars including URL (23 chars for t.co). Max 2 hashtags. Hook in first 8 words.
 - **Instagram**: caption up to ~2200 chars, 5–15 hashtags. **Requires a public image URL** — the `image_prompt` field must start with `http` or the publish will fail. If missing, ask the user for an image URL or skip `--platforms instagram`.
+- **Steam / Discord / TikTok / YouTube / Reddit / Jodel**: draft-only. Generate copy, scripts or post outlines, then ask the user to publish manually through the platform UI.
+
+## Creator Outreach Workflow
+
+When the user says they want content creators for the strategy channels:
+
+1. Run `nemo-bot creators plan --game "<name>" --genre "<genre>" --channels tiktok,youtube,instagram,twitch,lurkit,keymailer`.
+2. Show the creator target matrix and outreach templates.
+3. If they want tracking, run `nemo-bot creators export --output outreach/<game>-creators.csv ...`.
+4. Remind them that the first manual pages to create are Steam, Discord, TikTok, YouTube, Instagram and LinkedIn; Epic/GOG follow once release scope is confirmed.
+5. Do not invent real creator names. Use the search queries, Lurkit/Keymailer filters, and user-approved research to build the live list.
 
 ## Credentials & Health
 

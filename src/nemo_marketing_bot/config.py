@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     timezone: str = Field(default="Europe/Helsinki", alias="TIMEZONE")
     dry_run: bool = Field(default=True, alias="DRY_RUN")
 
+    # Comma-separated allowlist of hosts allowed to serve Instagram images
+    # (e.g. your S3 / R2 / Supabase storage). Subdomains of an allowed host
+    # are also accepted. Empty list => no image publishes are allowed.
+    ig_image_host_allowlist: str = Field(default="", alias="IG_IMAGE_HOST_ALLOWLIST")
+
     # Telegram approval bot (optional)
     telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
     # Comma-separated chat ids of approvers. Everyone else is ignored.
@@ -47,3 +52,10 @@ def approver_chat_ids() -> set[int]:
     if not raw:
         return set()
     return {int(x.strip()) for x in raw.split(",") if x.strip()}
+
+
+def ig_image_allowlist() -> frozenset[str]:
+    raw = settings.ig_image_host_allowlist.strip()
+    if not raw:
+        return frozenset()
+    return frozenset(x.strip().lower() for x in raw.split(",") if x.strip())
