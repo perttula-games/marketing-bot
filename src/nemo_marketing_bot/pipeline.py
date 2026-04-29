@@ -6,30 +6,14 @@ import logging
 
 from .config import ig_image_allowlist
 from .generator import ContentGenerator
-from .models import Brief, GeneratedPost, Platform, PostBundle, PublishPlatform
+from .models import Brief, GeneratedPost, PostBundle, Platform
 from .publishers import get_publisher
 from .review import DraftRecord, ReviewStore
 from .security import SafetyReport, check_post_safety
 
 logger = logging.getLogger(__name__)
 
-PUBLISH_PLATFORMS: list[PublishPlatform] = ["linkedin", "x", "instagram"]
-ALL_PLATFORMS: list[PublishPlatform] = PUBLISH_PLATFORMS
-CONTENT_PLATFORMS: list[Platform] = [
-    "linkedin",
-    "x",
-    "instagram",
-    "steam",
-    "discord",
-    "tiktok",
-    "youtube",
-    "reddit",
-    "jodel",
-]
-
-
-def can_publish_platform(platform: str) -> bool:
-    return platform in PUBLISH_PLATFORMS
+ALL_PLATFORMS: list[Platform] = ["linkedin", "x", "instagram"]
 
 
 def generate_bundle(brief: Brief, platforms: list[Platform] | None = None) -> PostBundle:
@@ -50,10 +34,6 @@ def publish_bundle(bundle: PostBundle) -> dict[str, str]:
     """Publish every post in the bundle. Failures are logged but don't stop siblings."""
     results: dict[str, str] = {}
     for post in bundle.posts:
-        if not can_publish_platform(post.platform):
-            logger.info("Skipping %s publish; manual channel draft only", post.platform)
-            results[post.platform] = "manual: no API publisher configured"
-            continue
         report = _safety_check(post)
         if not report.ok:
             logger.warning("Refusing to publish %s: %s", post.platform, report.issues)
@@ -80,11 +60,6 @@ def publish_draft(draft_id: str, store: ReviewStore | None = None) -> DraftRecor
     if draft.status != "approved":
         raise ValueError(f"Draft {draft_id} is {draft.status}; only approved drafts can be published.")
     post = draft.to_post()
-    if not can_publish_platform(post.platform):
-        raise ValueError(
-            f"Draft {draft_id} is for manual channel '{post.platform}'. "
-            "Export or copy it manually; no API publisher is configured."
-        )
     report = _safety_check(post)
     if not report.ok:
         msg = "blocked by safety check: " + "; ".join(report.issues)
