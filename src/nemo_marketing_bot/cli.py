@@ -265,8 +265,8 @@ def _print_outreach_templates(plan) -> None:  # type: ignore[no-untyped-def]
 @creator_app.command("plan")
 def creators_plan(
     game_name: str = typer.Option("Kalma", "--game", help="Game / project name."),
-    genre: str = typer.Option("PC indie/AA game", "--genre", help="Short genre or positioning."),
-    audience: str = typer.Option("PC and console players", "--audience", help="Primary audience."),
+    genre: str = typer.Option("PC first-person survival horror", "--genre", help="Short genre or positioning."),
+    audience: str = typer.Option("PC horror players", "--audience", help="Primary audience."),
     budget: str = typer.Option("organic-first / low paid test", "--budget", help="Budget posture for outreach."),
     language: str = typer.Option("fi,en", "--language", help="Creator language targets."),
     store_url: str | None = typer.Option(None, "--store-url", help="Steam/store URL if available."),
@@ -298,8 +298,8 @@ def creators_plan(
 def creators_export(
     output: Path = typer.Option(Path("creator-outreach.csv"), "--output", "-o", help="CSV file to write."),
     game_name: str = typer.Option("Kalma", "--game", help="Game / project name."),
-    genre: str = typer.Option("PC indie/AA game", "--genre", help="Short genre or positioning."),
-    audience: str = typer.Option("PC and console players", "--audience", help="Primary audience."),
+    genre: str = typer.Option("PC first-person survival horror", "--genre", help="Short genre or positioning."),
+    audience: str = typer.Option("PC horror players", "--audience", help="Primary audience."),
     budget: str = typer.Option("organic-first / low paid test", "--budget", help="Budget posture for outreach."),
     language: str = typer.Option("fi,en", "--language", help="Creator language targets."),
     store_url: str | None = typer.Option(None, "--store-url", help="Steam/store URL if available."),

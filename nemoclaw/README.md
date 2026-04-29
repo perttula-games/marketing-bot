@@ -62,9 +62,9 @@ nemoclaw marketingbot logs --follow
 nemoclaw marketingbot status
 
 # From the repo or sandbox shell, build the creator plan / CSV.
-nemo-bot creators plan --game "Kalma" --genre "PC indie/AA action game"
+nemo-bot creators plan --game "Kalma" --genre "PC first-person survival horror"
 nemo-bot creators export --output outreach/kalma-creators.csv \
-  --game "Kalma" --genre "PC indie/AA action game"
+  --game "Kalma" --genre "PC first-person survival horror"
 
 # Inspect the editable strategy prompt that shapes all generated content.
 nemo-bot strategy path

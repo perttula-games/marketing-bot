@@ -20,9 +20,9 @@ def test_parse_creator_channels_rejects_unknown_channel() -> None:
 
 def test_creator_plan_includes_manual_setup_and_targets() -> None:
     plan = build_creator_plan(
-        game_name="NemoClaw",
-        genre="co-op action roguelite",
-        audience="PC players",
+        game_name="Kalma",
+        genre="PC first-person survival horror",
+        audience="PC horror players",
         budget="organic-first",
         language="fi,en",
         store_url="https://store.steampowered.com/app/example",
@@ -32,14 +32,14 @@ def test_creator_plan_includes_manual_setup_and_targets() -> None:
 
     assert {task.channel for task in plan.setup_tasks} >= {"steam", "discord", "tiktok", "youtube"}
     assert [target.channel for target in plan.creator_targets] == ["tiktok", "youtube"]
-    assert "NemoClaw" in plan.outreach_templates["creator_dm_en"]
+    assert "Kalma" in plan.outreach_templates["creator_dm_en"]
 
 
 def test_creator_plan_csv_exports_tracking_columns() -> None:
     plan = build_creator_plan(
-        game_name="NemoClaw",
-        genre="co-op action roguelite",
-        audience="PC players",
+        game_name="Kalma",
+        genre="PC first-person survival horror",
+        audience="PC horror players",
         budget="organic-first",
         language="fi,en",
         store_url=None,

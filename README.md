@@ -31,6 +31,7 @@ cp .env.example .env
 
 ### Marketing system prompt
 
+The Kalma source-of-truth fact sheet lives in `kalma-marketing-foundation.md`.
 The strategy layer lives in `marketing-system-prompt.md` by default. Edit that
 file when you want to change how the bot positions Kalma, which content
 pillars it prioritizes, or how creator outreach should sound. The generator
@@ -102,8 +103,8 @@ Print the manual account/page checklist plus channel-specific creator targets:
 ```bash
 nemo-bot creators plan \
   --game "Kalma" \
-  --genre "PC indie/AA action game" \
-  --audience "PC and console players" \
+  --genre "PC first-person survival horror" \
+  --audience "PC horror players" \
   --channels tiktok,youtube,instagram,twitch,lurkit,keymailer
 ```
 
@@ -113,7 +114,7 @@ Export the creator target matrix to a spreadsheet-friendly CSV:
 nemo-bot creators export \
   --output outreach/kalma-creators.csv \
   --game "Kalma" \
-  --genre "PC indie/AA action game"
+  --genre "PC first-person survival horror"
 ```
 
 Use this before manual page creation so every account has the same CTA, link
