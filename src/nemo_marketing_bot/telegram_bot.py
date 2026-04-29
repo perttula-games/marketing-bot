@@ -13,8 +13,9 @@ the approver can then Apply or Discard.
 
 Security / trust model
 ----------------------
-- Only chat ids listed in TELEGRAM_APPROVER_CHAT_IDS can do anything. Others
-  are silently ignored.
+- Only chat ids listed in TELEGRAM_APPROVER_CHAT_IDS can do anything. For group
+    chats, also set TELEGRAM_APPROVER_USER_IDS so approval actions require a
+    known Telegram user id. Others are ignored.
 - Approver messages are treated as UNTRUSTED input to the LLM (wrapped in a
   guarded system prompt) — they direct content, they do NOT override system
   rules.
@@ -43,7 +44,7 @@ from telegram.ext import (
     filters,
 )
 
-from .config import approver_chat_ids, settings
+from .config import approver_chat_ids, approver_user_ids, settings
 from .generator import ContentGenerator
 from .models import GeneratedPost
 from .pipeline import publish_draft
@@ -66,10 +67,36 @@ POLL_INTERVAL = 10  # fallback if settings.telegram_poll_seconds is invalid
 
 def _require_approver(update: Update) -> bool:
     chat = update.effective_chat
-    if chat is None or chat.id not in approver_chat_ids():
-        logger.warning("Ignoring message from non-approver chat %s", chat.id if chat else None)
+    user = update.effective_user
+    if not _is_approved_actor(
+        chat_id=chat.id if chat else None,
+        user_id=user.id if user else None,
+        chat_type=getattr(chat, "type", None),
+        allowed_chat_ids=approver_chat_ids(),
+        allowed_user_ids=approver_user_ids(),
+    ):
+        logger.warning(
+            "Ignoring message from non-approver chat/user %s/%s",
+            chat.id if chat else None,
+            user.id if user else None,
+        )
         return False
     return True
+
+
+def _is_approved_actor(
+    *,
+    chat_id: int | None,
+    user_id: int | None,
+    chat_type: str | None,
+    allowed_chat_ids: set[int],
+    allowed_user_ids: set[int],
+) -> bool:
+    if chat_id is None or chat_id not in allowed_chat_ids:
+        return False
+    if allowed_user_ids:
+        return user_id in allowed_user_ids
+    return chat_type == "private"
 
 
 def _draft_keyboard(draft_id: str) -> InlineKeyboardMarkup:
@@ -130,10 +157,13 @@ def _render_proposal(current: DraftRecord, proposed: GeneratedPost) -> str:
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id if update.effective_chat else None
-    if chat_id not in approver_chat_ids():
+    user_id = update.effective_user.id if update.effective_user else None
+    if not _require_approver(update):
         await update.message.reply_text(
-            f"This is a private approval bot. Your chat id is <code>{chat_id}</code>. "
-            "Add it to TELEGRAM_APPROVER_CHAT_IDS to use the bot.",
+            f"This is a private approval bot. Your chat id is <code>{chat_id}</code> "
+            f"and your user id is <code>{user_id}</code>. Add the chat id to "
+            "TELEGRAM_APPROVER_CHAT_IDS and, for group chats, the user id to "
+            "TELEGRAM_APPROVER_USER_IDS.",
             parse_mode=ParseMode.HTML,
         )
         return

@@ -11,6 +11,8 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
   YouTube, Reddit and Jodel.
 - Plans creator outreach by channel: target profile, search queries,
   deliverables, acceptance criteria, metrics and reusable DM templates.
+- Uses an editable marketing system prompt so strategy and brand voice can be
+  changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
 - Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
@@ -26,6 +28,38 @@ pip install -e .
 cp .env.example .env
 # Fill in NVIDIA_API_KEY (from https://build.nvidia.com/) at minimum.
 ```
+
+### Marketing system prompt
+
+The strategy layer lives in `marketing-system-prompt.md` by default. Edit that
+file when you want to change how the bot positions NemoClaw, which content
+pillars it prioritizes, or how creator outreach should sound. The generator
+reloads it on each run, so the next `generate`, `post`, `from-rss`, scheduled
+job, or review edit uses the newest text.
+
+Useful commands:
+
+```bash
+nemo-bot strategy path
+nemo-bot strategy show
+nemo-bot strategy show --compiled
+nemo-bot strategy init --path marketing-system-prompt.md
+```
+
+In NemoClaw the image seeds this file to `/sandbox/marketing-system-prompt.md`.
+Ask the agent to edit that file when the marketing strategy changes, then ask it
+to run a dry-run draft before publishing.
+
+### Safety defaults
+
+`DRY_RUN=true` is the default. Scheduled jobs also require a second explicit
+gate before they can publish live: set `auto_publish: true` on the job and
+`ALLOW_SCHEDULED_AUTOPUBLISH=true` in the environment. Quoted YAML values such
+as `auto_publish: "false"` are rejected instead of coerced.
+
+For Telegram approvals, configure `TELEGRAM_APPROVER_CHAT_IDS`. If approvals
+happen in a group chat, also configure `TELEGRAM_APPROVER_USER_IDS` so only the
+listed users can approve or publish.
 
 ### API keys you'll need
 
@@ -106,7 +140,21 @@ nemo-bot schedule --config schedule.yaml
 ```
 
 `schedule.yaml` defines cron-triggered jobs of type `topic` or `rss`. See the
-example included in the repo.
+example included in the repo. Scheduled jobs use the same active marketing
+system prompt as manual CLI runs, so changing `marketing-system-prompt.md`
+updates future automated drafts.
+
+Scheduled jobs queue drafts by default. Live scheduled publishing requires both:
+
+```yaml
+auto_publish: true
+```
+
+and:
+
+```bash
+ALLOW_SCHEDULED_AUTOPUBLISH=true
+```
 
 ## Project layout
 
@@ -121,6 +169,7 @@ src/nemo_marketing_bot/
   pipeline.py     # generate -> publish glue
   publishers.py   # LinkedIn / X / Instagram
   scheduler.py    # APScheduler runner
+  strategy.py     # Editable marketing system prompt loader
 ```
 
 ## Notes & limits

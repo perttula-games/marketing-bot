@@ -82,24 +82,27 @@ def _fetch_with_safe_redirects(client: httpx.Client, url: str, *, hops_left: int
     """Manually follow redirects, re-validating every Location header."""
     current = url
     while True:
-        resp = client.get(current, headers={"User-Agent": "nemo-marketing-bot/0.1"})
-        if resp.status_code in (301, 302, 303, 307, 308):
-            if hops_left <= 0:
-                raise RuntimeError(f"Too many redirects fetching {url}")
-            location = resp.headers.get("location")
-            if not location:
-                raise RuntimeError(f"Redirect from {current} without Location header")
-            # Resolve relative redirects against the current URL.
-            current = str(httpx.URL(current).join(location))
-            assert_safe_url(current, label="redirect")
-            hops_left -= 1
-            continue
-        resp.raise_for_status()
-        # Cap response size.
-        content = resp.content
-        if len(content) > MAX_FEED_BYTES:
-            raise RuntimeError(f"Feed body exceeds {MAX_FEED_BYTES} bytes")
-        return content
+        with client.stream("GET", current, headers={"User-Agent": "nemo-marketing-bot/0.1"}) as resp:
+            if resp.status_code in (301, 302, 303, 307, 308):
+                if hops_left <= 0:
+                    raise RuntimeError(f"Too many redirects fetching {url}")
+                location = resp.headers.get("location")
+                if not location:
+                    raise RuntimeError(f"Redirect from {current} without Location header")
+                # Resolve relative redirects against the current URL.
+                current = str(httpx.URL(current).join(location))
+                assert_safe_url(current, label="redirect")
+                hops_left -= 1
+                continue
+            resp.raise_for_status()
+            chunks: list[bytes] = []
+            total = 0
+            for chunk in resp.iter_bytes():
+                total += len(chunk)
+                if total > MAX_FEED_BYTES:
+                    raise RuntimeError(f"Feed body exceeds {MAX_FEED_BYTES} bytes")
+                chunks.append(chunk)
+            return b"".join(chunks)
 
 
 def _entry_datetime(entry: object) -> datetime | None:

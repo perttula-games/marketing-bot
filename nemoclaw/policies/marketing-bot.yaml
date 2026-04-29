@@ -83,7 +83,6 @@ network_policies:
 
   rss-feeds:
     name: rss-feeds
-    description: "Common RSS/Atom hosts polled by the scheduler. Extend as needed."
     endpoints:
       - host: blogs.nvidia.com
         port: 443

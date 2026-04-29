@@ -37,6 +37,9 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
 | `nemo-bot creators plan --game "<name>" --genre "<genre>" [--channels tiktok,youtube,lurkit]` | Print manual page setup tasks, creator target profiles, search queries, deliverables, metrics and outreach templates. |
 | `nemo-bot creators export --output creator-outreach.csv --game "<name>"` | Export creator target matrix to CSV for manual outreach tracking. |
+| `nemo-bot strategy show` | Show the editable marketing system prompt currently shaping generation. |
+| `nemo-bot strategy show --compiled` | Show the editable prompt plus non-overridable JSON/safety rules. |
+| `nemo-bot strategy init --path /sandbox/marketing-system-prompt.md` | Recreate the starter prompt file if it is missing. |
 
 ## Safe Publish Workflow
 
@@ -48,7 +51,7 @@ Follow this order every time the user asks to publish:
 4. **Publish**: run `nemo-bot post` with the approved `--platforms`.
 5. **Report**: summarize the per-platform results dict returned by `publish_bundle` (e.g. `linkedin: urn:li:share:...`, `x: 17xxxx...`, or `error: ...`).
 
-Never publish without an explicit "yes, publish" from the user unless a scheduled job is running (those are pre-approved via `schedule.yaml`).
+Never publish without an explicit "yes, publish" from the user unless a scheduled job is explicitly configured for live publishing. Scheduled live publishing requires both `auto_publish: true` in `/sandbox/schedule.yaml` and `ALLOW_SCHEDULED_AUTOPUBLISH=true` in `/sandbox/.env`.
 
 ## Per-Platform Rules
 
@@ -105,9 +108,27 @@ jobs:
 
 After editing, restart the scheduler service: `systemctl --user restart nemo-bot-scheduler` inside the sandbox (or whichever init the sandbox uses — check `ps -ef | grep nemo-bot`).
 
-## Brand Voice
+Security note: `auto_publish` must be a real YAML boolean, not a quoted string.
+Use `auto_publish: true` only for jobs that are allowed to publish without
+per-post approval, and keep `ALLOW_SCHEDULED_AUTOPUBLISH=false` otherwise.
 
-Brand rules live in `/sandbox/.openclaw/workspace/SOUL.md` under the "Marketing voice" section. When the user asks to tweak tone, edit that file; the generator picks up changes via the workspace mount on the next run.
+## Marketing Strategy Prompt
+
+The live marketing system prompt is `/sandbox/marketing-system-prompt.md`.
+When the user asks to change tone, positioning, content pillars, creator
+priorities, CTA discipline, or channel strategy, edit that file. The generator
+reloads it on each run, so no code change or rebuild is needed.
+
+Use this workflow:
+
+1. Read `/sandbox/marketing-system-prompt.md` and summarize the current strategy.
+2. Edit only the strategy/voice/content-priority text the user wants changed.
+3. Run `nemo-bot strategy show` to confirm the active editable prompt.
+4. Run a dry-run `nemo-bot generate` or `nemo-bot creators plan` to show the effect.
+
+Do not put credentials, private business secrets, or platform tokens in the
+strategy prompt. Keep hard runtime rules in code: JSON shape, platform list,
+RSS untrusted-input handling, and publish confirmation are non-overridable.
 
 ## Troubleshooting
 
@@ -117,6 +138,7 @@ Brand rules live in `/sandbox/.openclaw/workspace/SOUL.md` under the "Marketing 
 | "401 from LinkedIn" | Token expired — user must refresh via their LinkedIn developer app. |
 | "429 from X" | Rate-limited. Pause RSS job, wait for 24h window reset. |
 | Nemotron call hangs | Check `NVIDIA_API_KEY` and network policy allows `integrate.api.nvidia.com`. |
+| Scheduled job says `auto_publish must be boolean` | Remove quotes around `true`/`false` in `/sandbox/schedule.yaml`. |
 | Duplicate posts from RSS | State file (`~/.nemo-bot/state.db`) may be missing — check it exists and is writable. |
 
 ## Do Not

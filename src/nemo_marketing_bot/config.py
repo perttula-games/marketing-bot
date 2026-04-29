@@ -31,6 +31,11 @@ class Settings(BaseSettings):
     # General
     timezone: str = Field(default="Europe/Helsinki", alias="TIMEZONE")
     dry_run: bool = Field(default=True, alias="DRY_RUN")
+    allow_scheduled_autopublish: bool = Field(default=False, alias="ALLOW_SCHEDULED_AUTOPUBLISH")
+    marketing_system_prompt_file: str = Field(
+        default="marketing-system-prompt.md",
+        alias="MARKETING_SYSTEM_PROMPT_FILE",
+    )
 
     # Comma-separated allowlist of hosts allowed to serve Instagram images
     # (e.g. your S3 / R2 / Supabase storage). Subdomains of an allowed host
@@ -41,6 +46,8 @@ class Settings(BaseSettings):
     telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
     # Comma-separated chat ids of approvers. Everyone else is ignored.
     telegram_approver_chat_ids: str = Field(default="", alias="TELEGRAM_APPROVER_CHAT_IDS")
+    # Optional comma-separated Telegram user ids. If set, chat id AND user id must match.
+    telegram_approver_user_ids: str = Field(default="", alias="TELEGRAM_APPROVER_USER_IDS")
     telegram_poll_seconds: int = Field(default=10, alias="TELEGRAM_POLL_SECONDS")
 
 
@@ -49,6 +56,13 @@ settings = Settings()
 
 def approver_chat_ids() -> set[int]:
     raw = settings.telegram_approver_chat_ids.strip()
+    if not raw:
+        return set()
+    return {int(x.strip()) for x in raw.split(",") if x.strip()}
+
+
+def approver_user_ids() -> set[int]:
+    raw = settings.telegram_approver_user_ids.strip()
     if not raw:
         return set()
     return {int(x.strip()) for x in raw.split(",") if x.strip()}

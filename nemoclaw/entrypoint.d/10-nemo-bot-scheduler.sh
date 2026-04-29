@@ -5,6 +5,7 @@
 set -euo pipefail
 
 SCHEDULE_CFG="${SCHEDULE_CFG:-/sandbox/schedule.yaml}"
+SYSTEM_PROMPT_CFG="${MARKETING_SYSTEM_PROMPT_FILE:-/sandbox/marketing-system-prompt.md}"
 LOG_DIR="${LOG_DIR:-/sandbox/.nemo-bot}"
 LOG_FILE="${LOG_DIR}/scheduler.log"
 
@@ -12,7 +13,13 @@ mkdir -p "$LOG_DIR"
 
 # If no schedule config in the sandbox yet, seed from the packaged default.
 if [[ ! -f "$SCHEDULE_CFG" ]]; then
-  cp /opt/nemo-marketing-bot/schedule.yaml "$SCHEDULE_CFG"
+  cp /usr/local/lib/nemo-marketing-bot/schedule.yaml "$SCHEDULE_CFG"
+fi
+
+# If no editable marketing prompt exists yet, seed from the packaged default.
+if [[ ! -f "$SYSTEM_PROMPT_CFG" ]]; then
+  mkdir -p "$(dirname "$SYSTEM_PROMPT_CFG")"
+  cp /usr/local/lib/nemo-marketing-bot/marketing-system-prompt.md "$SYSTEM_PROMPT_CFG"
 fi
 
 # Seed workspace files on first boot only.

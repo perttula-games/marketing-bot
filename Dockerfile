@@ -1,14 +1,9 @@
-# Sandbox image for direct Docker builds with the repository root as context.
+# Sandbox image for the marketing-bot NemoClaw deployment.
+# Build implicitly via: nemoclaw onboard --from Dockerfile
 #
-# For NemoClaw onboarding, use the repo-root Dockerfile instead:
-#   nemoclaw onboard --from Dockerfile --yes-i-accept-third-party-software
-#
-# NemoClaw uses the Dockerfile's directory as the build context. If this nested
-# file is passed directly to `nemoclaw --from`, pyproject.toml and src/ are not
-# included and COPY will fail.
-#
-# Extends the default NemoClaw sandbox base by installing the
-# nemo-marketing-bot package and pre-seeding the workspace files.
+# This file must live at the repository root because NemoClaw uses the
+# Dockerfile's directory as the build context. The image needs pyproject.toml,
+# src/, schedule.yaml, and nemoclaw/ assets in that context.
 
 ARG NEMOCLAW_BASE=ghcr.io/nvidia/nemoclaw/sandbox-base@sha256:3f5b8a3d6487326e30ca3bb1fc72d7ff91c6419035ac55e3b6cbc2056033534c
 ARG PIP_VERSION=24.2

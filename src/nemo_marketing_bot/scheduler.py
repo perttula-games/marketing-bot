@@ -94,7 +94,7 @@ def _register_job(scheduler: BlockingScheduler, job: dict[str, Any]) -> None:
     trigger = CronTrigger.from_crontab(job["cron"], timezone=settings.timezone)
     platforms: list[Platform] = job.get("platforms") or ALL_PLATFORMS
     job_type = job["type"]
-    auto_publish = bool(job.get("auto_publish", False))
+    auto_publish = _scheduled_auto_publish_enabled(job.get("auto_publish", False), job_name=name)
 
     if job_type == "rss":
         scheduler.add_job(
@@ -123,3 +123,22 @@ def _register_job(scheduler: BlockingScheduler, job: dict[str, Any]) -> None:
         "Registered job '%s' (%s) cron=%s platforms=%s auto_publish=%s",
         name, job_type, job["cron"], platforms, auto_publish,
     )
+
+
+def _scheduled_auto_publish_enabled(raw_value: Any, *, job_name: str) -> bool:
+    """Return whether a scheduler job may publish live.
+
+    YAML strings like "false" are rejected instead of coerced, because
+    bool("false") is True in Python.
+    """
+    if raw_value in (None, False):
+        return False
+    if raw_value is not True:
+        raise ValueError(f"Job {job_name!r}: auto_publish must be boolean true/false, not {raw_value!r}")
+    if not settings.allow_scheduled_autopublish:
+        logger.warning(
+            "Job %r requested auto_publish=true but ALLOW_SCHEDULED_AUTOPUBLISH is false; queuing only.",
+            job_name,
+        )
+        return False
+    return True

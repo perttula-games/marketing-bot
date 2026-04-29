@@ -9,10 +9,13 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
+from .creator_outreach import build_creator_plan, creator_plan_to_csv, parse_creator_channels
 from .ingest import brief_from_cli, briefs_from_rss
-from .models import Platform
+from .models import Platform, PublishPlatform
 from .pipeline import (
     ALL_PLATFORMS,
+    CONTENT_PLATFORMS,
+    PUBLISH_PLATFORMS,
     enqueue_bundle,
     generate_bundle,
     publish_bundle,
@@ -21,11 +24,35 @@ from .pipeline import (
 )
 from .review import ReviewStore, Status
 from .scheduler import run_scheduler
+from .strategy import (
+    build_generation_system_prompt,
+    load_editable_strategy_prompt,
+    marketing_system_prompt_path,
+    write_default_strategy_prompt,
+)
 
-app = typer.Typer(add_completion=False, help="NVIDIA Nemotron marketing bot for LinkedIn, X and Instagram.")
+app = typer.Typer(add_completion=False, help="NVIDIA Nemotron marketing bot for game marketing channels.")
 review_app = typer.Typer(help="Review, edit, approve and publish queued drafts.")
+creator_app = typer.Typer(help="Plan creator outreach and manual channel setup.")
+strategy_app = typer.Typer(help="Manage the editable marketing system prompt.")
 app.add_typer(review_app, name="review")
+app.add_typer(creator_app, name="creators")
+app.add_typer(strategy_app, name="strategy")
 console = Console()
+
+SENSITIVE_OUTPUT_NAMES = frozenset(
+    {
+        ".env",
+        ".env.local",
+        ".env.production",
+        "authorized_keys",
+        "id_rsa",
+        "id_rsa.pub",
+        "id_ed25519",
+        "id_ed25519.pub",
+        "known_hosts",
+    }
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,14 +64,37 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
-def _parse_platforms(value: str | None) -> list[Platform]:
+def _parse_platforms(
+    value: str | None,
+    *,
+    default: list[Platform] | None = None,
+    publish_only: bool = False,
+) -> list[Platform]:
+    choices: list[Platform] = list(PUBLISH_PLATFORMS if publish_only else CONTENT_PLATFORMS)
     if not value:
-        return ALL_PLATFORMS
+        return list(default or choices)
     wanted = [p.strip().lower() for p in value.split(",") if p.strip()]
+    if any(p in {"all", "all-content", "content"} for p in wanted):
+        if publish_only:
+            raise typer.BadParameter(f"Publishing supports only: {PUBLISH_PLATFORMS}.")
+        return list(CONTENT_PLATFORMS)
+    if any(p in {"publish", "all-publish", "publishers"} for p in wanted):
+        return list(PUBLISH_PLATFORMS)
     for p in wanted:
-        if p not in ALL_PLATFORMS:
-            raise typer.BadParameter(f"Unknown platform '{p}'. Choose from {ALL_PLATFORMS}.")
+        if p not in choices:
+            raise typer.BadParameter(f"Unknown platform '{p}'. Choose from {choices}.")
     return wanted  # type: ignore[return-value]
+
+
+def _parse_publish_platforms(value: str | None) -> list[PublishPlatform]:
+    platforms = _parse_platforms(value, default=list(PUBLISH_PLATFORMS), publish_only=True)
+    return platforms  # type: ignore[return-value]
+
+
+def _reject_sensitive_output_path(path: Path) -> None:
+    parts = {part.lower() for part in path.expanduser().parts}
+    if path.name.lower() in SENSITIVE_OUTPUT_NAMES or ".ssh" in parts:
+        raise typer.BadParameter(f"Refusing to write to sensitive path: {path}")
 
 
 def _print_bundle(bundle) -> None:  # type: ignore[no-untyped-def]
@@ -63,7 +113,7 @@ def generate(
     url: str | None = typer.Option(None, "--url", help="Link to include in posts."),
     cta: str | None = typer.Option(None, "--cta", help="Preferred call-to-action."),
     tags: str = typer.Option("", "--tags", help="Comma-separated hashtag themes."),
-    platforms: str | None = typer.Option(None, "--platforms", "-p", help="Subset, e.g. 'linkedin,x'."),
+    platforms: str | None = typer.Option(None, "--platforms", "-p", help="Subset, e.g. 'linkedin,tiktok,youtube' or 'all-content'."),
 ) -> None:
     """Generate posts from a CLI brief without publishing."""
     brief = brief_from_cli(
@@ -73,7 +123,7 @@ def generate(
         cta=cta,
         tags=[t.strip() for t in tags.split(",") if t.strip()],
     )
-    bundle = generate_bundle(brief, _parse_platforms(platforms))
+    bundle = generate_bundle(brief, _parse_platforms(platforms, default=list(ALL_PLATFORMS)))
     _print_bundle(bundle)
 
 
@@ -94,7 +144,7 @@ def post(
         cta=cta,
         tags=[t.strip() for t in tags.split(",") if t.strip()],
     )
-    results = run_once(brief, _parse_platforms(platforms))
+    results = run_once(brief, _parse_publish_platforms(platforms))
     console.print(results)
 
 
@@ -110,7 +160,7 @@ def from_rss(
     if not briefs:
         console.print("[yellow]No entries found.[/yellow]")
         raise typer.Exit(code=0)
-    wanted = _parse_platforms(platforms)
+    wanted = _parse_publish_platforms(platforms) if publish else _parse_platforms(platforms, default=list(ALL_PLATFORMS))
     for brief in briefs:
         console.rule(f"[bold]{brief.topic}[/bold]")
         bundle = generate_bundle(brief, wanted)
@@ -125,6 +175,156 @@ def schedule(
 ) -> None:
     """Run the blocking scheduler defined by a YAML config."""
     run_scheduler(config)
+
+
+# ---------------------------------------------------------------------------
+# Editable marketing strategy prompt: `nemo-bot strategy ...`
+# ---------------------------------------------------------------------------
+
+
+@strategy_app.command("path")
+def strategy_path() -> None:
+    """Print the active editable marketing system prompt path."""
+    console.print(marketing_system_prompt_path())
+
+
+@strategy_app.command("show")
+def strategy_show(
+    compiled: bool = typer.Option(False, "--compiled", help="Show the full prompt including non-negotiable runtime rules."),
+) -> None:
+    """Print the active marketing strategy prompt."""
+    console.print(build_generation_system_prompt() if compiled else load_editable_strategy_prompt())
+
+
+@strategy_app.command("init")
+def strategy_init(
+    path: Path | None = typer.Option(None, "--path", help="Prompt file path. Defaults to MARKETING_SYSTEM_PROMPT_FILE."),
+    force: bool = typer.Option(False, "--force", "-f", help="Overwrite an existing prompt file."),
+) -> None:
+    """Create a starter editable marketing system prompt file."""
+    if path is not None:
+        _reject_sensitive_output_path(path)
+    target, wrote = write_default_strategy_prompt(path, force=force)
+    if wrote:
+        console.print(f"[green]Wrote marketing system prompt:[/green] {target}")
+    else:
+        console.print(f"[yellow]Prompt already exists:[/yellow] {target}")
+
+
+# ---------------------------------------------------------------------------
+# Creator outreach and manual page setup: `nemo-bot creators ...`
+# ---------------------------------------------------------------------------
+
+
+def _print_creator_plan(plan) -> None:  # type: ignore[no-untyped-def]
+    console.rule(f"[bold]Manual channel setup for {plan.game_name}[/bold]")
+    setup_table = Table(show_lines=True)
+    setup_table.add_column("Prio", style="cyan", width=5)
+    setup_table.add_column("Channel", style="bold")
+    setup_table.add_column("Page / asset")
+    setup_table.add_column("First checklist")
+    setup_table.add_column("Done when")
+    for task in plan.setup_tasks:
+        setup_table.add_row(
+            str(task.priority),
+            task.channel,
+            task.title,
+            "\n".join(task.checklist),
+            task.done_when,
+        )
+    console.print(setup_table)
+
+    console.rule("[bold]Creator target matrix[/bold]")
+    target_table = Table(show_lines=True)
+    target_table.add_column("Prio", style="cyan", width=5)
+    target_table.add_column("Channel", style="bold")
+    target_table.add_column("Who to find")
+    target_table.add_column("Search")
+    target_table.add_column("Deliverables")
+    target_table.add_column("Metrics")
+    for target in plan.creator_targets:
+        target_table.add_row(
+            str(target.priority),
+            target.channel,
+            target.target_profile,
+            "\n".join(target.search_queries[:3]),
+            "\n".join(target.deliverables),
+            "\n".join(target.metrics[:4]),
+        )
+    console.print(target_table)
+
+
+def _print_outreach_templates(plan) -> None:  # type: ignore[no-untyped-def]
+    console.rule("[bold]Outreach templates[/bold]")
+    for name, template in plan.outreach_templates.items():
+        table = Table(title=name, show_header=False)
+        table.add_row(template)
+        console.print(table)
+
+
+@creator_app.command("plan")
+def creators_plan(
+    game_name: str = typer.Option("NemoClaw", "--game", help="Game / project name."),
+    genre: str = typer.Option("PC indie/AA game", "--genre", help="Short genre or positioning."),
+    audience: str = typer.Option("PC and console players", "--audience", help="Primary audience."),
+    budget: str = typer.Option("organic-first / low paid test", "--budget", help="Budget posture for outreach."),
+    language: str = typer.Option("fi,en", "--language", help="Creator language targets."),
+    store_url: str | None = typer.Option(None, "--store-url", help="Steam/store URL if available."),
+    discord_url: str | None = typer.Option(None, "--discord-url", help="Discord invite if available."),
+    channels: str | None = typer.Option(None, "--channels", "-c", help="Comma-separated creator channels or 'all'."),
+    templates: bool = typer.Option(True, "--templates/--no-templates", help="Show outreach templates."),
+) -> None:
+    """Print the manual page setup list and creator target matrix."""
+    try:
+        wanted = parse_creator_channels(channels)
+    except ValueError as err:
+        raise typer.BadParameter(str(err)) from err
+    plan = build_creator_plan(
+        game_name=game_name,
+        genre=genre,
+        audience=audience,
+        budget=budget,
+        language=language,
+        store_url=store_url,
+        discord_url=discord_url,
+        channels=wanted,
+    )
+    _print_creator_plan(plan)
+    if templates:
+        _print_outreach_templates(plan)
+
+
+@creator_app.command("export")
+def creators_export(
+    output: Path = typer.Option(Path("creator-outreach.csv"), "--output", "-o", help="CSV file to write."),
+    game_name: str = typer.Option("NemoClaw", "--game", help="Game / project name."),
+    genre: str = typer.Option("PC indie/AA game", "--genre", help="Short genre or positioning."),
+    audience: str = typer.Option("PC and console players", "--audience", help="Primary audience."),
+    budget: str = typer.Option("organic-first / low paid test", "--budget", help="Budget posture for outreach."),
+    language: str = typer.Option("fi,en", "--language", help="Creator language targets."),
+    store_url: str | None = typer.Option(None, "--store-url", help="Steam/store URL if available."),
+    discord_url: str | None = typer.Option(None, "--discord-url", help="Discord invite if available."),
+    channels: str | None = typer.Option(None, "--channels", "-c", help="Comma-separated creator channels or 'all'."),
+) -> None:
+    """Export the creator target matrix to CSV for manual outreach tracking."""
+    _reject_sensitive_output_path(output)
+    try:
+        wanted = parse_creator_channels(channels)
+    except ValueError as err:
+        raise typer.BadParameter(str(err)) from err
+    plan = build_creator_plan(
+        game_name=game_name,
+        genre=genre,
+        audience=audience,
+        budget=budget,
+        language=language,
+        store_url=store_url,
+        discord_url=discord_url,
+        channels=wanted,
+    )
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(creator_plan_to_csv(plan), encoding="utf-8")
+    console.print(f"[green]Wrote creator outreach CSV:[/green] {output}")
 
 
 # ---------------------------------------------------------------------------
@@ -149,7 +349,7 @@ def review_queue(
         cta=cta,
         tags=[t.strip() for t in tags.split(",") if t.strip()],
     )
-    bundle = generate_bundle(brief, _parse_platforms(platforms))
+    bundle = generate_bundle(brief, _parse_platforms(platforms, default=list(ALL_PLATFORMS)))
     ids = enqueue_bundle(bundle)
     console.print(f"[green]Queued {len(ids)} drafts:[/green] {', '.join(ids)}")
     console.print("Review with: [bold]nemo-bot review list[/bold]")
