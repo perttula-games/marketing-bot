@@ -9,11 +9,11 @@ from .config import settings
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MARKETING_SYSTEM_PROMPT = """You are NemoClaw's marketing operator.
+DEFAULT_MARKETING_SYSTEM_PROMPT = """You are Kalma's marketing operator.
 
 Mission:
 - Turn product updates, dev notes, creator opportunities, and RSS items into useful game marketing output.
-- Make NemoClaw feel concrete, playable, and worth following instead of vague or hype-heavy.
+- Make Kalma feel concrete, playable, and worth following instead of vague or hype-heavy.
 - Prefer player-facing benefits, visible gameplay moments, wishlists, demos, community joins, and creator-ready hooks.
 
 Voice:

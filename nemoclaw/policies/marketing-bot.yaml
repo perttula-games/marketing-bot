@@ -4,7 +4,7 @@
 
 preset:
   name: marketing-bot
-  description: "Egress for NVIDIA Nemotron + LinkedIn/X/Instagram publishing APIs and common RSS hosts"
+  description: "Egress for NVIDIA/DeepSeek inference + LinkedIn/X/Instagram publishing APIs and common RSS hosts"
 
 network_policies:
   nvidia-inference:
@@ -18,6 +18,23 @@ network_policies:
         rules:
           - allow: { method: POST, path: "/v1/**" }
           - allow: { method: GET,  path: "/v1/**" }
+
+  deepseek-inference:
+    name: deepseek-inference
+    endpoints:
+      - host: api.deepseek.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/chat/completions" }
+          - allow: { method: GET,  path: "/models" }
+          - allow: { method: POST, path: "/v1/chat/completions" }
+          - allow: { method: GET,  path: "/v1/models" }
+    binaries:
+      - { path: /usr/local/bin/node }
+      - { path: /usr/bin/node }
 
   linkedin:
     name: linkedin

@@ -32,7 +32,7 @@ cp .env.example .env
 ### Marketing system prompt
 
 The strategy layer lives in `marketing-system-prompt.md` by default. Edit that
-file when you want to change how the bot positions NemoClaw, which content
+file when you want to change how the bot positions Kalma, which content
 pillars it prioritizes, or how creator outreach should sound. The generator
 reloads it on each run, so the next `generate`, `post`, `from-rss`, scheduled
 job, or review edit uses the newest text.
@@ -101,7 +101,7 @@ Print the manual account/page checklist plus channel-specific creator targets:
 
 ```bash
 nemo-bot creators plan \
-  --game "NemoClaw" \
+  --game "Kalma" \
   --genre "PC indie/AA action game" \
   --audience "PC and console players" \
   --channels tiktok,youtube,instagram,twitch,lurkit,keymailer
@@ -111,8 +111,8 @@ Export the creator target matrix to a spreadsheet-friendly CSV:
 
 ```bash
 nemo-bot creators export \
-  --output outreach/nemoclaw-creators.csv \
-  --game "NemoClaw" \
+  --output outreach/kalma-creators.csv \
+  --game "Kalma" \
   --genre "PC indie/AA action game"
 ```
 
