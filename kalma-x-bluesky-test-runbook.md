@@ -62,7 +62,9 @@ One thing I want Kalma to get right: the town should feel like a place you shoul
 
 Snow, empty streets, slow dread, and a message you probably should not have followed.
 
-First-person survival horror. More soon: https://perttulagamestudio.com/
+First-person survival horror.
+
+Read the first devlog: https://perttulagamestudio.com/devlog/kalma-first-look
 
 ### Bluesky Test 2
 
@@ -74,7 +76,7 @@ I want the snow, empty streets, and silence to do real work before the player un
 
 First-person survival horror, solo-built in Finland with Unreal Engine 5.7.
 
-More: https://perttulagamestudio.com/
+Read the first devlog: https://perttulagamestudio.com/devlog/kalma-first-look
 
 ## Testing Rhythm
 
@@ -101,6 +103,7 @@ More: https://perttulagamestudio.com/
 
 - Read the post once out loud before publishing.
 - Check every link opens in a private browser window.
+- Use the main website URL in account profiles, but use the devlog URL in individual posts when the copy points to a specific first look or dev note.
 - Do not add hashtags if they push X over 280 characters.
 - Do not mention Steam until the Steam page exists.
 - Do not mention a demo, release date, or system requirements until confirmed.
