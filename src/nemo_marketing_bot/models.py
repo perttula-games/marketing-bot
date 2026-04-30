@@ -10,6 +10,7 @@ PublishPlatform = Literal["linkedin", "x", "instagram"]
 ContentPlatform = Literal[
     "linkedin",
     "x",
+    "bluesky",
     "instagram",
     "steam",
     "discord",

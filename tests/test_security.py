@@ -155,6 +155,12 @@ def test_safety_enforces_x_length_limit() -> None:
     assert any("limit" in i for i in r.issues)
 
 
+def test_safety_enforces_bluesky_length_limit() -> None:
+    r = check_post_safety("a" * 500, platform="bluesky")
+    assert not r.ok
+    assert any("limit" in i for i in r.issues)
+
+
 def test_safety_blocks_script_tag() -> None:
     r = check_post_safety("<script>alert(1)</script>", platform="linkedin")
     assert not r.ok

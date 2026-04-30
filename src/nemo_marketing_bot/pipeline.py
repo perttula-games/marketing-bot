@@ -18,6 +18,7 @@ ALL_PLATFORMS: list[PublishPlatform] = PUBLISH_PLATFORMS
 CONTENT_PLATFORMS: list[Platform] = [
     "linkedin",
     "x",
+    "bluesky",
     "instagram",
     "steam",
     "discord",

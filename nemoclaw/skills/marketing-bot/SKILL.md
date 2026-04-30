@@ -31,7 +31,7 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 | Command | Purpose |
 |---|---|
 | `nemo-bot generate --topic "<t>" --details "<d>" [--url <u>] [--tags a,b]` | Draft posts without publishing. Always run this first. |
-| `nemo-bot generate --topic "<t>" --details "<d>" --platforms all-content` | Draft the broader manual stack: LinkedIn, X, Instagram, Steam, Discord, TikTok, YouTube, Reddit and Jodel. |
+| `nemo-bot generate --topic "<t>" --details "<d>" --platforms all-content` | Draft the broader manual stack: LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok, YouTube, Reddit and Jodel. |
 | `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,x` | Generate AND publish. Requires `DRY_RUN=false`. |
 | `nemo-bot from-rss --feed <url> --limit N [--publish]` | Turn latest feed items into posts. |
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
@@ -60,6 +60,7 @@ The generator already enforces these in its system prompt, but verify before pub
 - **LinkedIn**: 1–3 short paragraphs, 3–5 hashtags at the end, first line is a hook, no emoji spam. Optional link at the end.
 - **X**: single post, ≤ 280 chars including URL (23 chars for t.co). Max 2 hashtags. Hook in first 8 words.
 - **Instagram**: caption up to ~2200 chars, 5–15 hashtags. **Requires a public image URL** — the `image_prompt` field must start with `http` or the publish will fail. If missing, ask the user for an image URL or skip `--platforms instagram`.
+- **Bluesky**: draft-only for now. Keep posts under 300 characters including URLs/hashtags. Generate copy, then ask the user to publish manually through Bluesky.
 - **Steam / Discord / TikTok / YouTube / Reddit / Jodel**: draft-only. Generate copy, scripts or post outlines, then ask the user to publish manually through the platform UI.
 
 ## Creator Outreach Workflow

@@ -218,7 +218,7 @@ def check_post_safety(
 ) -> SafetyReport:
     """Run pre-publish guardrails. Returns a SafetyReport with ok=True/False."""
     report = SafetyReport(ok=True)
-    limits = max_chars or {"x": 280, "linkedin": 3000, "instagram": 2200}
+    limits = max_chars or {"x": 280, "bluesky": 300, "linkedin": 3000, "instagram": 2200}
 
     # 1) Length
     cap = limits.get(platform)

@@ -92,9 +92,20 @@ nemo-bot generate \
   --platforms all-content
 ```
 
-`all-content` includes LinkedIn, X, Instagram, Steam, Discord, TikTok, YouTube,
-Reddit and Jodel drafts. Only LinkedIn, X and Instagram have API publishers;
-the other channels are intentionally manual drafts.
+`all-content` includes LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok,
+YouTube, Reddit and Jodel drafts. Only LinkedIn, X and Instagram have API
+publishers; Bluesky and the other channels are intentionally manual drafts.
+
+For the current Kalma social-only test, generate X and Bluesky drafts without
+publishing:
+
+```bash
+nemo-bot generate \
+  --topic "Kalma first look" \
+  --details "First-person survival horror from Perttula Game Studio. Unreal Engine 5.7. Dying northern town buried under snow. CTA: read the devlog and follow for updates." \
+  --url "https://perttulagamestudio.com/devlog/kalma-first-look" \
+  --platforms x,bluesky
+```
 
 ### Creator outreach and page setup
 
