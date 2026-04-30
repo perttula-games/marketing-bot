@@ -11,7 +11,7 @@ Use this as the current source of truth for Kalma marketing drafts. Do not fill 
 | Game name | Kalma | Confirmed | NemoClaw/nemoclaw is the sandbox/tooling name, not the game name. |
 | Genre | First-person survival horror with psychological horror positioning | Confirmed | Site confirms psychological horror / PC / single-player. User confirmed first-person survival horror. |
 | Player activity / core loop | Follow a desperate message into a dying northern town, survive what was left beneath the silence, and uncover the truth through atmosphere, story, and handcrafted environments. | Medium | Camera and genre are confirmed; exact survival mechanics are still unknown. |
-| Engine | Unreal Engine | Confirmed | Exact Unreal Engine version and system requirements are not confirmed yet. |
+| Engine | Unreal Engine 5.7 | Confirmed | System requirements are not confirmed yet. |
 | Platforms | PC | Confirmed | Steam page coming soon. No console claim. |
 | Steamworks status | Not set up yet | Confirmed | Steam page and wishlist are not live yet. |
 | Steam page | Not live yet / coming soon | Confirmed | Site says "Steam page coming soon" and "Wishlist coming soon". Footer Steam link currently points to `#`. |
@@ -30,7 +30,7 @@ Use this as the current source of truth for Kalma marketing drafts. Do not fill 
 - Perttula Game Studio is a one-person indie game studio from Finland, founded in 2026.
 - The studio focuses on atmospheric, story-driven experiences rooted in Nordic isolation and slow-building tension.
 - Kalma is a first-person survival horror game for PC and single-player, positioned publicly as psychological horror.
-- Kalma is built with Unreal Engine.
+- Kalma is built with Unreal Engine 5.7.
 - The game is set in a dying northern town buried under snow.
 - The premise starts with a desperate message from someone the player has not heard from in years.
 - The town is almost empty, the snow never lets up, and something feels deeply wrong beneath the silence.
@@ -56,7 +56,7 @@ Use this as the current source of truth for Kalma marketing drafts. Do not fill 
 ## Known Unknowns To Ask Before Publishing
 
 1. Exact survival mechanics: exploration, puzzle-solving, stealth, investigation, resource management, combat, or something else.
-2. Exact Unreal Engine version and system requirements direction.
+2. System requirements direction.
 3. Steamworks app setup, Steam app URL, and exact wishlist CTA once the page is live.
 4. Demo plan: none, planned, private, public, or Steam Next Fest.
 5. Release intent: no date, year, season, Early Access, or 1.0.

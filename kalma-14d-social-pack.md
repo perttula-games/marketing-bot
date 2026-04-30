@@ -9,14 +9,14 @@ Draft only. Do not publish without human review.
 | Game | Kalma |
 | Studio | Perttula Game Studio, one-person indie studio from Finland, founded 2026 |
 | Genre | First-person survival horror with psychological horror positioning |
-| Engine | Unreal Engine |
+| Engine | Unreal Engine 5.7 |
 | Platform | PC |
 | Steam | Not live yet; no Steam URL or wishlist CTA for now |
 | Setting | A dying northern town buried under snow |
 | Hook | A desperate message from someone the player has not heard from in years |
 | Pillars | Oppressive winter atmosphere, narrative-driven horror, handcrafted environments, slow-building tension |
 | CTA for this sprint | Read the devlog, follow for updates |
-| Do not claim yet | Demo, release date, price, Steam URL, Discord URL, comparables, exact mechanics, UE5 |
+| Do not claim yet | Demo, release date, price, Steam URL, Discord URL, comparables, exact mechanics |
 
 ## Week 1: First Look
 
@@ -28,7 +28,7 @@ Kalma is a first-person survival horror game set in a dying northern town buried
 
 A desperate message. Empty streets. Something wrong beneath the silence.
 
-Solo dev from Finland. Built with Unreal Engine.
+Solo dev from Finland. Built with Unreal Engine 5.7.
 
 First look: perttulagamestudio.com/devlog/kalma-first-look
 
@@ -50,7 +50,7 @@ Working on Kalma, a first-person survival horror game set in a dying northern to
 
 Snow everywhere. Empty streets. A desperate message from someone you have not heard from in years.
 
-Solo dev from Finland. Built with Unreal Engine.
+Solo dev from Finland. Built with Unreal Engine 5.7.
 
 First look: perttulagamestudio.com/devlog/kalma-first-look
 
@@ -84,7 +84,7 @@ The town matters as much as the threat.
 
 I want the snow, empty streets, and silence to do real work before the player understands what is wrong.
 
-First-person survival horror, solo-built in Finland with Unreal Engine.
+First-person survival horror, solo-built in Finland with Unreal Engine 5.7.
 
 More: perttulagamestudio.com
 
@@ -112,4 +112,4 @@ More: perttulagamestudio.com
 - Replace bare domains with full tracking links once analytics are ready.
 - Add hashtags only after checking each platform's current norms.
 - Do not add a Steam CTA until the Steam page exists.
-- Do not mention UE5 unless the exact Unreal Engine version is confirmed.
+- Unreal Engine 5.7 is now confirmed; still avoid system requirement claims until tested.
