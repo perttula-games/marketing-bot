@@ -16,7 +16,7 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
 - Uses an editable marketing system prompt so strategy and brand voice can be
   changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
-- Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API.
+- Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API, and Bluesky AT Protocol.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
 - `DRY_RUN=true` (default) prints posts instead of publishing — safe to try.
 
@@ -72,6 +72,7 @@ listed users can approve or publish.
 | LinkedIn | https://www.linkedin.com/developers/ → create app → Sign In with LinkedIn v2 + `w_member_social` | Obtain a user access token + your `urn:li:person:<id>`. |
 | X / Twitter | https://developer.x.com/ → project → User authentication settings (OAuth 1.0a, Read+Write) | Set the 4 OAuth 1.0a keys/secrets. |
 | Instagram | https://developers.facebook.com/ → Business app → Instagram Graph API | Link an IG Business/Creator account to a FB Page; get a long-lived token and the IG user id. |
+| Bluesky | https://bsky.app/settings/app-passwords | Create an app password and set `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD`. |
 
 ## Usage
 
@@ -95,8 +96,8 @@ nemo-bot generate \
 ```
 
 `all-content` includes LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok,
-YouTube, Reddit and Jodel drafts. Only LinkedIn, X and Instagram have API
-publishers; Bluesky and the other channels are intentionally manual drafts.
+YouTube, Reddit and Jodel drafts. LinkedIn, X, Instagram and Bluesky have API
+publishers; the other channels are intentionally manual drafts.
 
 For the current Kalma social-only test, generate X and Bluesky drafts without
 publishing:
@@ -206,7 +207,7 @@ src/nemo_marketing_bot/
   ingest.py       # CLI + RSS -> Brief
   models.py       # Brief, GeneratedPost, PostBundle
   pipeline.py     # generate -> publish glue
-  publishers.py   # LinkedIn / X / Instagram
+  publishers.py   # LinkedIn / X / Instagram / Bluesky
   scheduler.py    # APScheduler runner
   strategy.py     # Editable marketing system prompt loader
 ```

@@ -1,4 +1,4 @@
-"""Platform publishers for LinkedIn, X, and Instagram.
+"""Platform publishers for LinkedIn, X, Instagram, and Bluesky.
 
 Each publisher implements `publish(post)` and raises on failure. They honour
 `settings.dry_run` — when true, no network calls are made and the rendered post
@@ -8,8 +8,11 @@ API credentials.
 
 from __future__ import annotations
 
+import json
 import logging
 import time
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import Protocol
 
 import httpx
@@ -172,10 +175,122 @@ class InstagramPublisher:
             return media_id
 
 
+class BlueskyPublisher:
+    """Publishes a Bluesky post via AT Protocol XRPC endpoints.
+
+    We persist the access token + repo DID to disk and reuse it between runs.
+    If the token is expired (401), we login once and retry the publish.
+    """
+
+    platform = "bluesky"
+
+    def publish(self, post: GeneratedPost) -> str:
+        body = post.render()
+        if settings.dry_run:
+            logger.info("[DRY RUN] Bluesky post (%d chars):\n%s", len(body), body)
+            return "dry-run"
+        if not settings.bluesky_identifier or not settings.bluesky_app_password:
+            raise RuntimeError("Bluesky credentials missing. See .env.example.")
+
+        session = self._load_session() or self._create_session()
+        try:
+            uri = self._publish_record(
+                access_jwt=session["accessJwt"],
+                repo_did=session["did"],
+                text=body,
+            )
+        except httpx.HTTPStatusError as err:
+            if err.response.status_code != 401:
+                raise
+            logger.info("Bluesky session expired; refreshing session and retrying once")
+            session = self._create_session()
+            uri = self._publish_record(
+                access_jwt=session["accessJwt"],
+                repo_did=session["did"],
+                text=body,
+            )
+        logger.info("Bluesky post published: %s", uri)
+        return uri
+
+    def _service(self) -> str:
+        return settings.bluesky_service_url.rstrip("/")
+
+    def _session_path(self) -> Path:
+        return Path(settings.bluesky_session_file).expanduser()
+
+    def _load_session(self) -> dict[str, str] | None:
+        path = self._session_path()
+        if not path.exists():
+            return None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            return None
+        if not isinstance(payload, dict):
+            return None
+        access_jwt = payload.get("accessJwt")
+        did = payload.get("did")
+        if not isinstance(access_jwt, str) or not access_jwt:
+            return None
+        if not isinstance(did, str) or not did:
+            return None
+        return {"accessJwt": access_jwt, "did": did}
+
+    def _save_session(self, session: dict[str, str]) -> None:
+        path = self._session_path()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(session), encoding="utf-8")
+        path.chmod(0o600)
+
+    def _create_session(self) -> dict[str, str]:
+        with httpx.Client(timeout=30) as client:
+            resp = client.post(
+                f"{self._service()}/xrpc/com.atproto.server.createSession",
+                json={
+                    "identifier": settings.bluesky_identifier,
+                    "password": settings.bluesky_app_password,
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        access_jwt = data.get("accessJwt")
+        did = data.get("did")
+        if not isinstance(access_jwt, str) or not access_jwt:
+            raise RuntimeError("Bluesky createSession response missing accessJwt")
+        if not isinstance(did, str) or not did:
+            raise RuntimeError("Bluesky createSession response missing did")
+        session = {"accessJwt": access_jwt, "did": did}
+        self._save_session(session)
+        return session
+
+    def _publish_record(self, *, access_jwt: str, repo_did: str, text: str) -> str:
+        with httpx.Client(timeout=30) as client:
+            resp = client.post(
+                f"{self._service()}/xrpc/com.atproto.repo.createRecord",
+                headers={"Authorization": f"Bearer {access_jwt}"},
+                json={
+                    "repo": repo_did,
+                    "collection": "app.bsky.feed.post",
+                    "record": {
+                        "$type": "app.bsky.feed.post",
+                        "text": text,
+                        "createdAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
+                    },
+                },
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        uri = data.get("uri")
+        if not isinstance(uri, str) or not uri:
+            raise RuntimeError("Bluesky createRecord response missing uri")
+        return uri
+
+
 _REGISTRY: dict[str, type[Publisher]] = {
     "linkedin": LinkedInPublisher,
     "x": XPublisher,
     "instagram": InstagramPublisher,
+    "bluesky": BlueskyPublisher,
 }
 
 

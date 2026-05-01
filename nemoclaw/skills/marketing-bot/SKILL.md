@@ -1,6 +1,6 @@
 ---
 name: "marketing-bot"
-description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, and Instagram posts, draft manual game marketing channels, plan organic follower growth, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, grow X/Bluesky followers, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, follower-growth planning, creator outreach planning, and safe publish workflow."
+description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, Instagram, and Bluesky posts, draft manual game marketing channels, plan organic follower growth, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, grow X/Bluesky followers, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, follower-growth planning, creator outreach planning, and safe publish workflow."
 ---
 
 <!-- Marketing bot skill for NemoClaw sandboxes -->
@@ -11,7 +11,7 @@ Operate the installed `nemo-marketing-bot` package (CLI entrypoint: `nemo-bot`) 
 
 ## Context
 
-The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It uses NVIDIA Nemotron (via `integrate.api.nvidia.com`) to draft posts for LinkedIn, X, Instagram, Steam, Discord, TikTok/Reels/Shorts, YouTube, Reddit and Jodel. LinkedIn, X and Instagram can be published through official APIs; the other channels are manual drafts.
+The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It uses NVIDIA Nemotron (via `integrate.api.nvidia.com`) to draft posts for LinkedIn, X, Instagram, Bluesky, Steam, Discord, TikTok/Reels/Shorts, YouTube, Reddit and Jodel. LinkedIn, X, Instagram and Bluesky can be published through official APIs; the other channels are manual drafts.
 
 All credentials live in `/sandbox/.env` (loaded by pydantic-settings). The agent MUST NOT print secrets back to the user; refer to them by name only.
 
@@ -34,7 +34,7 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 |---|---|
 | `nemo-bot generate --topic "<t>" --details "<d>" [--url <u>] [--tags a,b]` | Draft posts without publishing. Always run this first. |
 | `nemo-bot generate --topic "<t>" --details "<d>" --platforms all-content` | Draft the broader manual stack: LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok, YouTube, Reddit and Jodel. |
-| `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,x` | Generate AND publish. Requires `DRY_RUN=false`. |
+| `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,x,bluesky` | Generate AND publish. Requires `DRY_RUN=false`. |
 | `nemo-bot from-rss --feed <url> --limit N [--publish]` | Turn latest feed items into posts. |
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
 | `nemo-bot creators plan --game "<name>" --genre "<genre>" [--channels tiktok,youtube,lurkit]` | Print manual page setup tasks, creator target profiles, search queries, deliverables, metrics and outreach templates. |
@@ -64,7 +64,7 @@ The generator already enforces these in its system prompt, but verify before pub
 - **LinkedIn**: 1–3 short paragraphs, 3–5 hashtags at the end, first line is a hook, no emoji spam. Optional link at the end.
 - **X**: single post, ≤ 280 chars including URL (23 chars for t.co). Max 2 hashtags. Hook in first 8 words.
 - **Instagram**: caption up to ~2200 chars, 5–15 hashtags. **Requires a public image URL** — the `image_prompt` field must start with `http` or the publish will fail. If missing, ask the user for an image URL or skip `--platforms instagram`.
-- **Bluesky**: draft-only for now. Keep posts under 300 characters including URLs/hashtags. Generate copy, then ask the user to publish manually through Bluesky.
+- **Bluesky**: single post, ≤ 300 chars including URLs/hashtags. Publish only after explicit user approval. Use app-password auth (`BLUESKY_IDENTIFIER`, `BLUESKY_APP_PASSWORD`) and reuse session state to avoid login rate limits.
 - **Steam / Discord / TikTok / YouTube / Reddit / Jodel**: draft-only. Generate copy, scripts or post outlines, then ask the user to publish manually through the platform UI.
 
 ## Creator Outreach Workflow
@@ -98,7 +98,8 @@ If any platform publish fails with an auth error:
    - `NVIDIA_API_KEY` (required for all generation)
    - `LINKEDIN_ACCESS_TOKEN`, `LINKEDIN_PERSON_URN`
    - `X_API_KEY`, `X_API_SECRET`, `X_ACCESS_TOKEN`, `X_ACCESS_TOKEN_SECRET`
-   - `IG_ACCESS_TOKEN`, `IG_USER_ID`
+  - `IG_ACCESS_TOKEN`, `IG_USER_ID`
+  - `BLUESKY_IDENTIFIER`, `BLUESKY_APP_PASSWORD`, `BLUESKY_SERVICE_URL`
 3. LinkedIn tokens expire ~60 days. Suggest re-running the LinkedIn OAuth flow if 401.
 4. X free tier = ~17 posts / 24h per user. If rate-limited, pause the `blog-rss-poll` job.
 

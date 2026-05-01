@@ -21,10 +21,19 @@ def test_prompt_includes_manual_content_channel_rules() -> None:
 def test_publish_bundle_skips_manual_channels() -> None:
     bundle = PostBundle(
         brief=Brief(topic="Demo reveal"),
+        posts=[GeneratedPost(platform="reddit", text="Kalma first look")],
+    )
+
+    assert publish_bundle(bundle) == {"reddit": "manual: no API publisher configured"}
+
+
+def test_publish_bundle_supports_bluesky_in_dry_run() -> None:
+    bundle = PostBundle(
+        brief=Brief(topic="Demo reveal"),
         posts=[GeneratedPost(platform="bluesky", text="Kalma first look")],
     )
 
-    assert publish_bundle(bundle) == {"bluesky": "manual: no API publisher configured"}
+    assert publish_bundle(bundle) == {"bluesky": "dry-run"}
 
 
 def test_publish_bundle_blocks_repost_like_content() -> None:
