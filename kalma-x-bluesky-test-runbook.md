@@ -14,7 +14,7 @@ Draft-only testing plan for the first two live social accounts.
 
 | Task | X | Bluesky | Notes |
 | --- | --- | --- | --- |
-| Handle chosen | [fill] | [fill] | Prefer studio handle if one account will cover future games. |
+| Handle chosen | [fill] | [fill] | Studio handle future-proofs the account for later games; game-specific handle is easier to discover for Kalma-only searches. Decide before posting. |
 | Display name set | Perttula Game Studio | Perttula Game Studio | Or `Kalma` if the account is game-specific. |
 | Bio set | [todo] | [todo] | Keep the same core wording across both. |
 | Website link | https://perttulagamestudio.com/ | https://perttulagamestudio.com/ | Use devlog link in first posts. |
@@ -28,6 +28,8 @@ Draft-only testing plan for the first two live social accounts.
 
 Perttula Game Studio. One-person indie studio from Finland. Building Kalma, a first-person survival horror game set in a dying northern town.
 
+A desperate message. Empty streets. Snow over everything.
+
 ### Game Account
 
 Kalma is a first-person survival horror game from Perttula Game Studio. A desperate message. A dying northern town. Snow over everything.
@@ -35,6 +37,8 @@ Kalma is a first-person survival horror game from Perttula Game Studio. A desper
 ## First Test Posts
 
 Use one post per day at first. Do not post the same wording to both platforms at the exact same minute.
+
+If publishing matching announcements on both platforms in the same day, publish X first, then Bluesky about 4-6 hours later. Use the gap to adjust wording for the platform and reach a different timezone window.
 
 ### X Test 1
 
@@ -83,21 +87,25 @@ Read the first devlog: https://perttulagamestudio.com/devlog/kalma-first-look
 | Day | Action | Goal |
 | --- | --- | --- |
 | Day 1 | Publish one intro post on X. | Baseline impressions and profile visits. |
-| Day 2 | Publish one intro post on Bluesky. | Compare tone and early follows. |
+| Day 2 | Publish one intro post on Bluesky with screenshot. | Compare tone and test whether media improves profile visits. |
 | Day 3 | Reply/comment from the account for 15 minutes. | Make the account look alive without spam. |
-| Day 4 | Publish one atmosphere post on X with screenshot. | Test image vs text-only. |
-| Day 5 | Publish one atmosphere post on Bluesky with screenshot. | Test dev-community response. |
+| Day 4 | Publish one atmosphere post on X with screenshot. | Test image-led wording on the higher-volume platform. |
+| Day 5 | Publish one atmosphere post on Bluesky or reply with the screenshot thread if Day 2 performed well. | Test dev-community response without repeating the same beat. |
 | Day 6 | Review metrics and keep the best-performing wording. | Learn before scaling. |
 | Day 7 | Rest or repost only if there is real new context. | Avoid looking automated. |
 
+For the first screenshot, use a real moody Kalma image if available, such as an empty snowed-in street. Do not use placeholder art.
+
 ## KPI Tracker
 
-| Date | Channel | Post | Asset | Impressions | Likes | Reposts | Replies | Profile visits | Follows | Link clicks | Notes |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | X | Test 1 | Text only |  |  |  |  |  |  |  |  |
-|  | Bluesky | Test 1 | Text only |  |  |  |  |  |  |  |  |
-|  | X | Test 2 | Screenshot |  |  |  |  |  |  |  |  |
-|  | Bluesky | Test 2 | Screenshot |  |  |  |  |  |  |  |  |
+Track ratios as well as raw totals. Early X reach may outpace Bluesky because of volume, while Bluesky may show stronger engagement per follower.
+
+| Date | Channel | Account age | Followers before | Post | Asset | Impressions | Likes | Reposts | Replies | Profile visits | Follows | Link clicks | Engagement rate | Follow rate | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|  | X |  |  | Test 1 | Text only |  |  |  |  |  |  |  |  |  |  |
+|  | Bluesky |  |  | Test 1 | Screenshot |  |  |  |  |  |  |  |  |  |  |
+|  | X |  |  | Test 2 | Screenshot |  |  |  |  |  |  |  |  |  |  |
+|  | Bluesky |  |  | Test 2 | Screenshot or reply thread |  |  |  |  |  |  |  |  |  |  |
 
 ## Manual Publish Safety
 
