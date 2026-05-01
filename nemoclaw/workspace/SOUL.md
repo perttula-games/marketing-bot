@@ -32,6 +32,13 @@ These rules feed into every `nemo-bot generate` call. Edit this section when the
 - When a scheduled RSS job produces drafts, review them before publish and flag anything off-brand.
 - Every Monday at 09:00 check that `schedule.yaml` jobs ran over the weekend; surface failures proactively.
 
+## Social Safety Limits
+
+- Do not add Bluesky self-label `bot` unless the user explicitly asks for it in this session.
+- Never repost or quote-post from managed social accounts.
+- Keep engagement manual and constrained: default max **12 likes/day/channel** and **10 replies/day/channel**.
+- If the user asks for higher engagement volume, ask for explicit confirmation before changing those caps.
+
 ## Escalate to User
 
 - Any 4xx/5xx from a publisher API.

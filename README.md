@@ -11,6 +11,8 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
   YouTube, Reddit and Jodel.
 - Plans creator outreach by channel: target profile, search queries,
   deliverables, acceptance criteria, metrics and reusable DM templates.
+- Plans manual organic follower growth for X and Bluesky with feed/search
+  targets, daily engagement actions, safety limits and KPI tracking columns.
 - Uses an editable marketing system prompt so strategy and brand voice can be
   changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
@@ -130,6 +132,31 @@ nemo-bot creators export \
 
 Use this before manual page creation so every account has the same CTA, link
 tracking pattern, creator support path and deliverable expectations.
+
+### Organic follower growth
+
+Build a safe manual action plan for growing the new X and Bluesky accounts:
+
+```bash
+nemo-bot growth plan \
+  --game "Kalma" \
+  --positioning "PC first-person survival horror" \
+  --audience "PC horror players and indie horror developers" \
+  --channels bluesky,x
+```
+
+Export the daily action list for tracking:
+
+```bash
+nemo-bot growth export \
+  --output outreach/kalma-growth-actions.csv \
+  --game "Kalma" \
+  --channels bluesky,x
+```
+
+Growth actions are intentionally manual. The bot should not automate follows,
+likes, reposts, DMs or replies; it creates target pools, reply prompts, limits
+and KPI columns so the account grows through relevant interactions.
 
 ### Generate and publish
 

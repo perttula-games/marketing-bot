@@ -206,6 +206,15 @@ DEFAULT_FORBIDDEN_PHRASES = frozenset(
     }
 )
 
+# Text patterns that indicate repost/quote-post behavior. We hard-fail these
+# because managed accounts must publish only original posts.
+REPOST_MARKER_PATTERNS = (
+    re.compile(r"(?im)^\s*rt\s+@\w+"),
+    re.compile(r"(?im)^\s*repost\s*[:\-]"),
+    re.compile(r"(?im)^\s*quote\s*(post|tweet)?\s*[:\-]"),
+    re.compile(r"(?im)^\s*qt\s*[:\-]"),
+)
+
 
 def check_post_safety(
     text: str,
@@ -234,6 +243,10 @@ def check_post_safety(
     # 3) Suspicious patterns
     if re.search(r"<script\b", text, re.IGNORECASE):
         report.fail("contains <script> tag")
+    for marker in REPOST_MARKER_PATTERNS:
+        if marker.search(text):
+            report.fail("repost/quote-post markers are not allowed")
+            break
     if text.count("http://") + text.count("https://") > 3:
         report.warn("more than 3 URLs in a single post")
 

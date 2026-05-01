@@ -25,3 +25,12 @@ def test_publish_bundle_skips_manual_channels() -> None:
     )
 
     assert publish_bundle(bundle) == {"bluesky": "manual: no API publisher configured"}
+
+
+def test_publish_bundle_blocks_repost_like_content() -> None:
+    bundle = PostBundle(
+        brief=Brief(topic="Community repost"),
+        posts=[GeneratedPost(platform="x", text="RT @creator Great insights")],
+    )
+
+    assert publish_bundle(bundle) == {"x": "blocked: repost/quote-post markers are not allowed"}

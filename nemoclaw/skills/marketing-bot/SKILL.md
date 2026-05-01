@@ -1,6 +1,6 @@
 ---
 name: "marketing-bot"
-description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, and Instagram posts, draft manual game marketing channels, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, creator outreach planning, and safe publish workflow."
+description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, and Instagram posts, draft manual game marketing channels, plan organic follower growth, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, grow X/Bluesky followers, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, follower-growth planning, creator outreach planning, and safe publish workflow."
 ---
 
 <!-- Marketing bot skill for NemoClaw sandboxes -->
@@ -18,6 +18,8 @@ All credentials live in `/sandbox/.env` (loaded by pydantic-settings). The agent
 ## When to Use
 
 - User asks to draft, review, or publish a social post.
+- User asks to grow followers, increase Bluesky/X reach, find relevant accounts
+  to follow, or build a daily engagement routine.
 - User asks to plan creator outreach, content creators, influencer seeding, Lurkit/Keymailer work, or manual channel setup.
 - User asks about an announcement, product update, release, or customer story.
 - User wants to start, pause, or edit a recurring campaign.
@@ -37,6 +39,8 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
 | `nemo-bot creators plan --game "<name>" --genre "<genre>" [--channels tiktok,youtube,lurkit]` | Print manual page setup tasks, creator target profiles, search queries, deliverables, metrics and outreach templates. |
 | `nemo-bot creators export --output creator-outreach.csv --game "<name>"` | Export creator target matrix to CSV for manual outreach tracking. |
+| `nemo-bot growth plan --game "<name>" --channels bluesky,x [--daily-like-limit 12] [--daily-reply-limit 10]` | Print a manual organic follower-growth plan with target pools, daily engagement actions, limits and KPI columns. |
+| `nemo-bot growth export --output growth-actions.csv --game "<name>"` | Export the daily follower-growth action list to CSV. |
 | `nemo-bot strategy show` | Show the editable marketing system prompt currently shaping generation. |
 | `nemo-bot strategy show --compiled` | Show the editable prompt plus non-overridable JSON/safety rules. |
 | `nemo-bot strategy init --path /sandbox/marketing-system-prompt.md` | Recreate the starter prompt file if it is missing. |
@@ -72,6 +76,18 @@ When the user says they want content creators for the strategy channels:
 3. If they want tracking, run `nemo-bot creators export --output outreach/<game>-creators.csv ...`.
 4. Remind them that the first manual pages to create are Steam, Discord, TikTok, YouTube, Instagram and LinkedIn; Epic/GOG follow once release scope is confirmed.
 5. Do not invent real creator names. Use the search queries, Lurkit/Keymailer filters, and user-approved research to build the live list.
+
+## Organic Follower Growth Workflow
+
+When the user says they want more followers or more reach on Bluesky/X:
+
+1. Run `nemo-bot growth plan --game "<name>" --channels bluesky,x`.
+2. Use the plan to give the user a daily manual checklist: relevant feeds/searches, account criteria, reply work, post cadence and KPI tracking.
+3. If they want tracking, run `nemo-bot growth export --output outreach/<game>-growth-actions.csv --game "<name>" --channels bluesky,x`.
+4. Keep growth work manual and account-fit based. Do not automate follows, likes, reposts, DMs or replies.
+5. Never repost or quote-post from the managed accounts.
+6. Keep daily engagement capped by default at 12 likes and 10 replies per channel unless the user explicitly approves a temporary increase.
+7. Prefer specific replies and relevant follows over raw volume. Avoid follow-unfollow tactics and generic engagement bait.
 
 ## Credentials & Health
 

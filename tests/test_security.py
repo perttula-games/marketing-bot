@@ -166,6 +166,12 @@ def test_safety_blocks_script_tag() -> None:
     assert not r.ok
 
 
+def test_safety_blocks_repost_markers() -> None:
+    r = check_post_safety("RT @someaccount Great thread", platform="x")
+    assert not r.ok
+    assert any("repost/quote-post" in i for i in r.issues)
+
+
 def test_safety_instagram_requires_image() -> None:
     r = check_post_safety("Caption.", platform="instagram", image_url=None)
     assert not r.ok
