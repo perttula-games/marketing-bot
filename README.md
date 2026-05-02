@@ -16,7 +16,7 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
 - Uses an editable marketing system prompt so strategy and brand voice can be
   changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
-- Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API, and Bluesky AT Protocol.
+- Publishes via official APIs: LinkedIn UGC Posts and Bluesky AT Protocol.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
 - `DRY_RUN=true` (default) prints posts instead of publishing — safe to try.
 
@@ -70,8 +70,8 @@ listed users can approve or publish.
 | --- | --- | --- |
 | NVIDIA Nemotron | https://build.nvidia.com/ → pick a Nemotron model → "Get API Key" | Required for generation. |
 | LinkedIn | https://www.linkedin.com/developers/ → create app → Sign In with LinkedIn v2 + `w_member_social` | Obtain a user access token + your `urn:li:person:<id>`. |
-| X / Twitter | https://developer.x.com/ → project → User authentication settings (OAuth 1.0a, Read+Write) | Set the 4 OAuth 1.0a keys/secrets. |
-| Instagram | https://developers.facebook.com/ → Business app → Instagram Graph API | Link an IG Business/Creator account to a FB Page; get a long-lived token and the IG user id. |
+| X / Twitter | https://developer.x.com/ → project → User authentication settings (OAuth 1.0a, Read+Write) | Optional: keep as manual-post channel unless you re-enable API publishing in code. |
+| Instagram | https://developers.facebook.com/ → Business app → Instagram Graph API | Optional: keep as manual-post channel unless you re-enable API publishing in code. |
 | Bluesky | https://bsky.app/settings/app-passwords | Create an app password and set `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD`. |
 
 ## Usage
@@ -96,7 +96,7 @@ nemo-bot generate \
 ```
 
 `all-content` includes LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok,
-YouTube, Reddit and Jodel drafts. LinkedIn, X, Instagram and Bluesky have API
+YouTube, Reddit and Jodel drafts. Only LinkedIn and Bluesky have API
 publishers; the other channels are intentionally manual drafts.
 
 For the current Kalma social-only test, generate X and Bluesky drafts without
@@ -164,7 +164,7 @@ and KPI columns so the account grows through relevant interactions.
 ```bash
 # Set DRY_RUN=false in .env once you're ready to actually post.
 nemo-bot post --topic "Customer story: ACME" --details "Deployed in 3 weeks." \
-  --platforms linkedin,x
+  --platforms linkedin,bluesky
 ```
 
 ### From an RSS feed

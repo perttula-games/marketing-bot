@@ -13,7 +13,7 @@ Draft -> approve -> publish.
 - Start from .env.example and fill only the channels you plan to enable first.
 - Minimum required for drafting:
   - NVIDIA_API_KEY
-- Required for X publish:
+- X remains manual in current setup:
   - X_API_KEY
   - X_API_SECRET
   - X_ACCESS_TOKEN
@@ -21,7 +21,7 @@ Draft -> approve -> publish.
 - Required for LinkedIn publish:
   - LINKEDIN_ACCESS_TOKEN
   - LINKEDIN_AUTHOR_URN
-- Required for Instagram publish:
+- Instagram remains manual in current setup:
   - IG_ACCESS_TOKEN
   - IG_USER_ID
   - IG_IMAGE_HOST_ALLOWLIST
@@ -66,7 +66,7 @@ Approved workflow commands:
 
 ## 5) Live enablement (one platform at a time)
 
-- Enable only one channel first (recommended: X).
+- Enable only one channel first (recommended: Bluesky).
 - Set DRY_RUN=false only when first live test is ready.
 - Publish one approved draft.
 - Verify platform result ID and account-side visibility.
@@ -89,7 +89,7 @@ If anything looks wrong:
 
 ## 8) Recommended first live test
 
-- Channel: X only
+- Channel: Bluesky only
 - Content: one short atmosphere post
 - Process: queue -> show -> approve -> publish
 - Follow-up: confirm post appears on account and log the publish ID

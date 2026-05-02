@@ -1,6 +1,6 @@
 ---
 name: "marketing-bot"
-description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn, X, Instagram, and Bluesky posts, draft manual game marketing channels, plan organic follower growth, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, grow X/Bluesky followers, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, follower-growth planning, creator outreach planning, and safe publish workflow."
+description: "Operates the nemo-marketing-bot CLI to generate and publish LinkedIn and Bluesky posts, draft manual game marketing channels, plan organic follower growth, and plan creator outreach using NVIDIA Nemotron. Use when the user asks to draft a post, grow X/Bluesky followers, build creator lists, schedule a campaign, poll an RSS feed for announcements, check publish status, or tune brand voice. Covers dry-run verification, per-platform length/tone rules, follower-growth planning, creator outreach planning, and safe publish workflow."
 ---
 
 <!-- Marketing bot skill for NemoClaw sandboxes -->
@@ -11,7 +11,7 @@ Operate the installed `nemo-marketing-bot` package (CLI entrypoint: `nemo-bot`) 
 
 ## Context
 
-The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It uses NVIDIA Nemotron (via `integrate.api.nvidia.com`) to draft posts for LinkedIn, X, Instagram, Bluesky, Steam, Discord, TikTok/Reels/Shorts, YouTube, Reddit and Jodel. LinkedIn, X, Instagram and Bluesky can be published through official APIs; the other channels are manual drafts.
+The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It uses NVIDIA Nemotron (via `integrate.api.nvidia.com`) to draft posts for LinkedIn, X, Instagram, Bluesky, Steam, Discord, TikTok/Reels/Shorts, YouTube, Reddit and Jodel. LinkedIn and Bluesky can be published through official APIs; X, Instagram and the other channels are manual drafts.
 
 All credentials live in `/sandbox/.env` (loaded by pydantic-settings). The agent MUST NOT print secrets back to the user; refer to them by name only.
 
@@ -34,7 +34,7 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 |---|---|
 | `nemo-bot generate --topic "<t>" --details "<d>" [--url <u>] [--tags a,b]` | Draft posts without publishing. Always run this first. |
 | `nemo-bot generate --topic "<t>" --details "<d>" --platforms all-content` | Draft the broader manual stack: LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok, YouTube, Reddit and Jodel. |
-| `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,x,bluesky` | Generate AND publish. Requires `DRY_RUN=false`. |
+| `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,bluesky` | Generate AND publish. Requires `DRY_RUN=false`. |
 | `nemo-bot from-rss --feed <url> --limit N [--publish]` | Turn latest feed items into posts. |
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
 | `nemo-bot creators plan --game "<name>" --genre "<genre>" [--channels tiktok,youtube,lurkit]` | Print manual page setup tasks, creator target profiles, search queries, deliverables, metrics and outreach templates. |
@@ -121,7 +121,7 @@ jobs:
     type: rss
     feed: "https://blogs.nvidia.com/feed/"
     limit: 2
-    platforms: [linkedin, x, instagram]
+    platforms: [linkedin, bluesky]
 ```
 
 After editing, restart the scheduler service: `systemctl --user restart nemo-bot-scheduler` inside the sandbox (or whichever init the sandbox uses — check `ps -ef | grep nemo-bot`).

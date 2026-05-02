@@ -39,7 +39,25 @@ def test_publish_bundle_supports_bluesky_in_dry_run() -> None:
 def test_publish_bundle_blocks_repost_like_content() -> None:
     bundle = PostBundle(
         brief=Brief(topic="Community repost"),
-        posts=[GeneratedPost(platform="x", text="RT @creator Great insights")],
+        posts=[GeneratedPost(platform="bluesky", text="RT @creator Great insights")],
     )
 
-    assert publish_bundle(bundle) == {"x": "blocked: repost/quote-post markers are not allowed"}
+    assert publish_bundle(bundle) == {"bluesky": "blocked: repost/quote-post markers are not allowed"}
+
+
+def test_publish_bundle_treats_x_as_manual_channel() -> None:
+    bundle = PostBundle(
+        brief=Brief(topic="Demo reveal"),
+        posts=[GeneratedPost(platform="x", text="Kalma first look")],
+    )
+
+    assert publish_bundle(bundle) == {"x": "manual: no API publisher configured"}
+
+
+def test_publish_bundle_treats_instagram_as_manual_channel() -> None:
+    bundle = PostBundle(
+        brief=Brief(topic="Demo reveal"),
+        posts=[GeneratedPost(platform="instagram", text="Kalma first look")],
+    )
+
+    assert publish_bundle(bundle) == {"instagram": "manual: no API publisher configured"}
