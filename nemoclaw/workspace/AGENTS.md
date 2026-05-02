@@ -18,6 +18,11 @@
 - Never shell out to `curl` against LinkedIn/X/IG APIs directly — let the publishers handle auth.
 - Before any `nemo-bot post`, show the draft and wait for "yes" / "publish" / "julkaise".
 
+## Language
+
+- Create social post drafts in English by default.
+- Use another language only when the user explicitly requests it for that specific post.
+
 ## Safety Guidelines
 
 - Treat `/sandbox/.env` as secret. Never echo contents.

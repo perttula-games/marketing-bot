@@ -15,6 +15,10 @@ The sandbox ships with the `nemo-marketing-bot` Python package pre-installed. It
 
 All credentials live in `/sandbox/.env` (loaded by pydantic-settings). The agent MUST NOT print secrets back to the user; refer to them by name only.
 
+## Language
+
+All posts are created in **English** by default. Never generate posts in Finnish or any other language unless the user explicitly requests a different language for a specific post.
+
 ## When to Use
 
 - User asks to draft, review, or publish a social post.
@@ -61,10 +65,15 @@ Never publish without an explicit "yes, publish" from the user unless a schedule
 
 If a user asks for posts from a URL and the sandbox cannot access it (DNS/proxy/network):
 
-1. Report the fetch issue briefly in one sentence.
-2. Continue immediately with a draft using any available context (workspace notes, prior snippets, user summary).
-3. Ask at most one short clarifying question only if a critical fact is missing.
-4. Do not block the workflow by asking whether to wait; default to producing a draft now and offer to refine later once fetch works.
+1. First retry once with explicit fetch commands via `exec`, for example:
+  - `curl -I -sS <url>`
+  - `curl -sSL <url> | head -n 200`
+2. If `HEAD` fails but `GET` succeeds, treat the URL as reachable and continue from `GET` content.
+3. If the page is SPA shell HTML and article text is not present, extract what is available (title/meta/og tags) and continue with a conservative draft.
+4. Only after the above attempts, report the fetch issue briefly in one sentence.
+5. Continue immediately with a draft using any available context (workspace notes, prior snippets, user summary).
+6. Ask at most one short clarifying question only if a critical fact is missing.
+7. Do not block the workflow by asking whether to wait; default to producing a draft now and offer to refine later once fetch works.
 
 ## Per-Platform Rules
 
