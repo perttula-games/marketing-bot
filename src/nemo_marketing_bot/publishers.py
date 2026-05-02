@@ -8,8 +8,10 @@ API credentials.
 
 from __future__ import annotations
 
+import json
 import logging
 import time
+from pathlib import Path
 from typing import Protocol
 
 import httpx
@@ -172,10 +174,105 @@ class InstagramPublisher:
             return media_id
 
 
+class BlueskyPublisher:
+    """Publishes a post to Bluesky via AT Protocol XRPC endpoints."""
+
+    platform = "bluesky"
+
+    def _service(self) -> str:
+        return settings.bluesky_service_url.rstrip("/")
+
+    def _session_path(self) -> Path:
+        return Path(settings.bluesky_session_file).expanduser()
+
+    def _save_session(self, data: dict[str, str]) -> None:
+        path = self._session_path()
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(data), encoding="utf-8")
+        except Exception:  # noqa: BLE001 - session caching is best-effort
+            logger.debug("Failed to write Bluesky session file", exc_info=True)
+
+    def _load_session(self) -> dict[str, str] | None:
+        path = self._session_path()
+        if not path.exists():
+            return None
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and all(k in data for k in ("accessJwt", "did")):
+                return {"accessJwt": data["accessJwt"], "did": data["did"]}
+        except Exception:  # noqa: BLE001 - if cache is bad, we'll re-login
+            logger.debug("Ignoring invalid Bluesky session file", exc_info=True)
+        return None
+
+    def _create_session(self, client: httpx.Client) -> dict[str, str]:
+        if not settings.bluesky_identifier or not settings.bluesky_app_password:
+            raise RuntimeError("Bluesky credentials missing. Set BLUESKY_IDENTIFIER and BLUESKY_APP_PASSWORD.")
+
+        resp = client.post(
+            f"{self._service()}/xrpc/com.atproto.server.createSession",
+            json={
+                "identifier": settings.bluesky_identifier,
+                "password": settings.bluesky_app_password,
+            },
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        session = {
+            "accessJwt": data["accessJwt"],
+            "did": data["did"],
+        }
+        self._save_session(session)
+        return session
+
+    def _post_record(self, client: httpx.Client, access_jwt: str, did: str, body: str) -> str:
+        now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        resp = client.post(
+            f"{self._service()}/xrpc/com.atproto.repo.createRecord",
+            headers={"Authorization": f"Bearer {access_jwt}"},
+            json={
+                "repo": did,
+                "collection": "app.bsky.feed.post",
+                "record": {
+                    "$type": "app.bsky.feed.post",
+                    "text": body,
+                    "createdAt": now,
+                },
+            },
+        )
+        resp.raise_for_status()
+        out = resp.json()
+        return out.get("uri") or out.get("cid") or "ok"
+
+    def publish(self, post: GeneratedPost) -> str:
+        body = post.render()
+        if settings.dry_run:
+            logger.info("[DRY RUN] Bluesky post (%d chars):\n%s", len(body), body)
+            return "dry-run"
+
+        with httpx.Client(timeout=30) as client:
+            session = self._load_session()
+            if not session:
+                session = self._create_session(client)
+
+            try:
+                publish_id = self._post_record(client, session["accessJwt"], session["did"], body)
+            except httpx.HTTPStatusError as err:
+                # Access token can expire; retry once with a fresh session.
+                if err.response.status_code not in (401, 403):
+                    raise
+                session = self._create_session(client)
+                publish_id = self._post_record(client, session["accessJwt"], session["did"], body)
+
+        logger.info("Bluesky post published: %s", publish_id)
+        return publish_id
+
+
 _REGISTRY: dict[str, type[Publisher]] = {
     "linkedin": LinkedInPublisher,
     "x": XPublisher,
     "instagram": InstagramPublisher,
+    "bluesky": BlueskyPublisher,
 }
 
 

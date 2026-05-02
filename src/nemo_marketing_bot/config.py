@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     ig_access_token: str = Field(default="", alias="IG_ACCESS_TOKEN")
     ig_user_id: str = Field(default="", alias="IG_USER_ID")
 
+    # Bluesky
+    bluesky_identifier: str = Field(default="", alias="BLUESKY_IDENTIFIER")
+    bluesky_app_password: str = Field(default="", alias="BLUESKY_APP_PASSWORD")
+    bluesky_service_url: str = Field(default="https://bsky.social", alias="BLUESKY_SERVICE_URL")
+    bluesky_session_file: str = Field(default="~/.nemo-bot/bluesky-session.json", alias="BLUESKY_SESSION_FILE")
+
     # General
     timezone: str = Field(default="Europe/Helsinki", alias="TIMEZONE")
     dry_run: bool = Field(default=True, alias="DRY_RUN")

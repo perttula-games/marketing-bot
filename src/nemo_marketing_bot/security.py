@@ -38,6 +38,28 @@ class UnsafeURLError(ValueError):
     """Raised when a URL fails SSRF / scheme validation."""
 
 
+def normalize_url(url: str | None) -> str | None:
+    """Normalize URLs to https://www. format.
+
+    - If URL lacks a scheme, prepends https://www.
+    - If URL uses http://, converts to https://
+    - Bare domains like "example.com" become "https://www.example.com"
+    - Preserves https:// URLs as-is
+    - Returns None if input is None or empty
+    """
+    if not url or not isinstance(url, str) or not url.strip():
+        return None
+    url = url.strip()
+    # If already has scheme, just ensure https
+    if "://" in url:
+        if url.lower().startswith("http://"):
+            return url.replace("http://", "https://", 1)
+        return url
+    # No scheme — bare domain like "example.com/path"
+    # Add https://www. prefix
+    return f"https://www.{url}"
+
+
 def assert_safe_url(url: str, *, label: str = "url") -> str:
     """Validate that `url` is an external http(s) URL we can fetch safely.
 

@@ -16,7 +16,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 from .config import settings
 from .models import Brief, GeneratedPost, PostBundle, Platform
-from .security import wrap_untrusted
+from .security import wrap_untrusted, normalize_url
 from .strategy import build_generation_system_prompt, build_revision_system_prompt
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,10 @@ PLATFORM_RULES: dict[Platform, str] = {
     "x": (
         "X (Twitter) post: punchy, conversational. Strict 270 character limit "
         "INCLUDING hashtags and the URL. One idea only. 1-3 hashtags."
+    ),
+    "bluesky": (
+        "Bluesky post: concise and authentic. Strict 300 character limit INCLUDING "
+        "hashtags and URL. Keep one clear hook and 1-3 hashtags."
     ),
     "instagram": (
         "Instagram caption: warm, visual, story-first. 150-400 characters of copy "
@@ -69,7 +73,8 @@ def _build_user_prompt(brief: Brief, platforms: list[Platform]) -> str:
     platform_choices = "|".join(platforms)
     topic_block = wrap_untrusted(brief.topic, tag="TOPIC")
     details_block = wrap_untrusted(brief.details, tag="DETAILS") if brief.details else "(none)"
-    url_line = f"\nLink to include where relevant:\n{wrap_untrusted(brief.url, tag='LINK')}" if brief.url else ""
+    normalized_url = normalize_url(brief.url)
+    url_line = f"\nLink to include where relevant:\n{wrap_untrusted(normalized_url, tag='LINK')}" if normalized_url else ""
     cta_line = f"\nPreferred CTA:\n{wrap_untrusted(brief.call_to_action, tag='CTA')}" if brief.call_to_action else ""
     tag_line = f"\nSuggested tag themes:\n{wrap_untrusted(', '.join(brief.tags), tag='TAGS')}" if brief.tags else ""
     return (
