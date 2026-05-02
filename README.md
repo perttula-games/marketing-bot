@@ -11,12 +11,10 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
   YouTube, Reddit and Jodel.
 - Plans creator outreach by channel: target profile, search queries,
   deliverables, acceptance criteria, metrics and reusable DM templates.
-- Plans manual organic follower growth for X and Bluesky with feed/search
-  targets, daily engagement actions, safety limits and KPI tracking columns.
 - Uses an editable marketing system prompt so strategy and brand voice can be
   changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
-- Publishes via official APIs: LinkedIn UGC Posts and Bluesky AT Protocol.
+- Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
 - `DRY_RUN=true` (default) prints posts instead of publishing — safe to try.
 
@@ -33,9 +31,8 @@ cp .env.example .env
 
 ### Marketing system prompt
 
-The Kalma source-of-truth fact sheet lives in `kalma-marketing-foundation.md`.
 The strategy layer lives in `marketing-system-prompt.md` by default. Edit that
-file when you want to change how the bot positions Kalma, which content
+file when you want to change how the bot positions NemoClaw, which content
 pillars it prioritizes, or how creator outreach should sound. The generator
 reloads it on each run, so the next `generate`, `post`, `from-rss`, scheduled
 job, or review edit uses the newest text.
@@ -70,9 +67,8 @@ listed users can approve or publish.
 | --- | --- | --- |
 | NVIDIA Nemotron | https://build.nvidia.com/ → pick a Nemotron model → "Get API Key" | Required for generation. |
 | LinkedIn | https://www.linkedin.com/developers/ → create app → Sign In with LinkedIn v2 + `w_member_social` | Obtain a user access token + your `urn:li:person:<id>`. |
-| X / Twitter | https://developer.x.com/ → project → User authentication settings (OAuth 1.0a, Read+Write) | Optional: keep as manual-post channel unless you re-enable API publishing in code. |
-| Instagram | https://developers.facebook.com/ → Business app → Instagram Graph API | Optional: keep as manual-post channel unless you re-enable API publishing in code. |
-| Bluesky | https://bsky.app/settings/app-passwords | Create an app password and set `BLUESKY_IDENTIFIER` + `BLUESKY_APP_PASSWORD`. |
+| X / Twitter | https://developer.x.com/ → project → User authentication settings (OAuth 1.0a, Read+Write) | Set the 4 OAuth 1.0a keys/secrets. |
+| Instagram | https://developers.facebook.com/ → Business app → Instagram Graph API | Link an IG Business/Creator account to a FB Page; get a long-lived token and the IG user id. |
 
 ## Usage
 
@@ -95,20 +91,9 @@ nemo-bot generate \
   --platforms all-content
 ```
 
-`all-content` includes LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok,
-YouTube, Reddit and Jodel drafts. Only LinkedIn and Bluesky have API
-publishers; the other channels are intentionally manual drafts.
-
-For the current Kalma social-only test, generate X and Bluesky drafts without
-publishing:
-
-```bash
-nemo-bot generate \
-  --topic "Kalma first look" \
-  --details "First-person survival horror from Perttula Game Studio. Unreal Engine 5.7. Dying northern town buried under snow. CTA: read the devlog and follow for updates." \
-  --url "https://perttulagamestudio.com/devlog/kalma-first-look" \
-  --platforms x,bluesky
-```
+`all-content` includes LinkedIn, X, Instagram, Steam, Discord, TikTok, YouTube,
+Reddit and Jodel drafts. Only LinkedIn, X and Instagram have API publishers;
+the other channels are intentionally manual drafts.
 
 ### Creator outreach and page setup
 
@@ -116,9 +101,9 @@ Print the manual account/page checklist plus channel-specific creator targets:
 
 ```bash
 nemo-bot creators plan \
-  --game "Kalma" \
-  --genre "PC first-person survival horror" \
-  --audience "PC horror players" \
+  --game "NemoClaw" \
+  --genre "PC indie/AA action game" \
+  --audience "PC and console players" \
   --channels tiktok,youtube,instagram,twitch,lurkit,keymailer
 ```
 
@@ -126,45 +111,20 @@ Export the creator target matrix to a spreadsheet-friendly CSV:
 
 ```bash
 nemo-bot creators export \
-  --output outreach/kalma-creators.csv \
-  --game "Kalma" \
-  --genre "PC first-person survival horror"
+  --output outreach/nemoclaw-creators.csv \
+  --game "NemoClaw" \
+  --genre "PC indie/AA action game"
 ```
 
 Use this before manual page creation so every account has the same CTA, link
 tracking pattern, creator support path and deliverable expectations.
-
-### Organic follower growth
-
-Build a safe manual action plan for growing the new X and Bluesky accounts:
-
-```bash
-nemo-bot growth plan \
-  --game "Kalma" \
-  --positioning "PC first-person survival horror" \
-  --audience "PC horror players and indie horror developers" \
-  --channels bluesky,x
-```
-
-Export the daily action list for tracking:
-
-```bash
-nemo-bot growth export \
-  --output outreach/kalma-growth-actions.csv \
-  --game "Kalma" \
-  --channels bluesky,x
-```
-
-Growth actions are intentionally manual. The bot should not automate follows,
-likes, reposts, DMs or replies; it creates target pools, reply prompts, limits
-and KPI columns so the account grows through relevant interactions.
 
 ### Generate and publish
 
 ```bash
 # Set DRY_RUN=false in .env once you're ready to actually post.
 nemo-bot post --topic "Customer story: ACME" --details "Deployed in 3 weeks." \
-  --platforms linkedin,bluesky
+  --platforms linkedin,x
 ```
 
 ### From an RSS feed
@@ -207,7 +167,7 @@ src/nemo_marketing_bot/
   ingest.py       # CLI + RSS -> Brief
   models.py       # Brief, GeneratedPost, PostBundle
   pipeline.py     # generate -> publish glue
-  publishers.py   # LinkedIn / X / Instagram / Bluesky
+  publishers.py   # LinkedIn / X / Instagram
   scheduler.py    # APScheduler runner
   strategy.py     # Editable marketing system prompt loader
 ```

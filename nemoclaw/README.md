@@ -53,7 +53,7 @@ nemoclaw marketingbot skill install nemoclaw/skills/marketing-bot
 # Chat with the marketing operator.
 nemoclaw marketingbot connect
 # Then: "Draft a LinkedIn post about the Nemotron 2 launch"
-# Or: "Plan creator outreach for Kalma on TikTok, YouTube and Keymailer"
+# Or: "Plan creator outreach for NemoClaw on TikTok, YouTube and Keymailer"
 
 # Tail the scheduler log (background RSS + cron jobs).
 nemoclaw marketingbot logs --follow
@@ -62,9 +62,9 @@ nemoclaw marketingbot logs --follow
 nemoclaw marketingbot status
 
 # From the repo or sandbox shell, build the creator plan / CSV.
-nemo-bot creators plan --game "Kalma" --genre "PC first-person survival horror"
-nemo-bot creators export --output outreach/kalma-creators.csv \
-  --game "Kalma" --genre "PC first-person survival horror"
+nemo-bot creators plan --game "NemoClaw" --genre "PC indie/AA action game"
+nemo-bot creators export --output outreach/nemoclaw-creators.csv \
+  --game "NemoClaw" --genre "PC indie/AA action game"
 
 # Inspect the editable strategy prompt that shapes all generated content.
 nemo-bot strategy path

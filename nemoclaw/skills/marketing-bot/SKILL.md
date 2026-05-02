@@ -57,6 +57,15 @@ Follow this order every time the user asks to publish:
 
 Never publish without an explicit "yes, publish" from the user unless a scheduled job is explicitly configured for live publishing. Scheduled live publishing requires both `auto_publish: true` in `/sandbox/schedule.yaml` and `ALLOW_SCHEDULED_AUTOPUBLISH=true` in `/sandbox/.env`.
 
+## URL Fetch Failure Behavior
+
+If a user asks for posts from a URL and the sandbox cannot access it (DNS/proxy/network):
+
+1. Report the fetch issue briefly in one sentence.
+2. Continue immediately with a draft using any available context (workspace notes, prior snippets, user summary).
+3. Ask at most one short clarifying question only if a critical fact is missing.
+4. Do not block the workflow by asking whether to wait; default to producing a draft now and offer to refine later once fetch works.
+
 ## Per-Platform Rules
 
 The generator already enforces these in its system prompt, but verify before publish:

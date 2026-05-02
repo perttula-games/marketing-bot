@@ -31,11 +31,6 @@ PLATFORM_RULES: dict[Platform, str] = {
         "X (Twitter) post: punchy, conversational. Strict 270 character limit "
         "INCLUDING hashtags and the URL. One idea only. 1-3 hashtags."
     ),
-    "bluesky": (
-        "Bluesky post: conversational, dev-community friendly, and less compressed than X. "
-        "Strict 300 character limit INCLUDING hashtags and URLs. One clear idea, no thread unless asked. "
-        "Use 0-2 focused hashtags and keep the tone human, specific, and low-hype."
-    ),
     "instagram": (
         "Instagram caption: warm, visual, story-first. 150-400 characters of copy "
         "followed by up to 10 hashtags on a new line. Include an image_prompt that "

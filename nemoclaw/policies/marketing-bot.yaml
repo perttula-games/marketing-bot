@@ -4,7 +4,7 @@
 
 preset:
   name: marketing-bot
-  description: "Egress for NVIDIA/DeepSeek inference + LinkedIn/X/Instagram publishing APIs and common RSS hosts"
+  description: "Egress for NVIDIA/DeepSeek inference, LinkedIn/X/Instagram/Bluesky publishing APIs, RSS hosts, and the perttulagamestudio.com devlog"
 
 network_policies:
   nvidia-inference:
@@ -115,3 +115,31 @@ network_policies:
         tls: terminate
         rules:
           - allow: { method: GET, path: "/**" }
+      - host: perttulagamestudio.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: GET, path: "/**" }
+      - host: www.perttulagamestudio.com
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: GET, path: "/**" }
+
+  bluesky:
+    name: bluesky
+    endpoints:
+      - host: bsky.social
+        port: 443
+        protocol: rest
+        enforcement: enforce
+        tls: terminate
+        rules:
+          - allow: { method: POST, path: "/xrpc/com.atproto.server.createSession" }
+          - allow: { method: POST, path: "/xrpc/com.atproto.server.refreshSession" }
+          - allow: { method: POST, path: "/xrpc/com.atproto.repo.createRecord" }
+          - allow: { method: GET,  path: "/xrpc/**" }

@@ -45,3 +45,10 @@ These rules feed into every `nemo-bot generate` call. Edit this section when the
 - Nemotron returning content that trips a forbidden-word check.
 - Token nearing expiry (LinkedIn < 7 days left).
 - X rate limit reaching 80% of the 24h quota.
+
+## URL Failure Fallback
+
+- If a requested URL cannot be fetched because of DNS/proxy/network issues, do not stop at diagnostics.
+- Continue by drafting from any available source: existing workspace notes, previously seen excerpts, or user-provided summary.
+- Ask only one focused follow-up for missing facts if needed, then deliver a usable first draft immediately.
+- Offer a short "fact-check pass" once the URL becomes reachable, instead of blocking draft creation.

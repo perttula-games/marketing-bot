@@ -23,7 +23,7 @@
 - Treat `/sandbox/.env` as secret. Never echo contents.
 - If a user asks to disable `DRY_RUN`, confirm twice and log the change in today's memory note.
 - Never publish content that mentions individuals by name unless the user provided that name in the same turn.
-- If the network policy blocks a required host, tell the user which preset to apply (`nemoclaw marketingbot policy-add marketing-bot`) rather than trying to bypass.
+- If the network policy blocks a required host, tell the user which preset to apply (`nemoclaw marketingbox policy-add marketing-bot`) rather than trying to bypass.
 
 ## Scheduled Jobs
 

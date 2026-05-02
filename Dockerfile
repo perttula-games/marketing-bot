@@ -9,6 +9,9 @@ ARG NEMOCLAW_BASE=ghcr.io/nvidia/nemoclaw/sandbox-base@sha256:3f5b8a3d6487326e30
 ARG PIP_VERSION=24.2
 FROM ${NEMOCLAW_BASE}
 
+# Re-declare ARG after FROM so it is visible to subsequent RUN steps.
+ARG PIP_VERSION
+
 ENV MARKETING_SYSTEM_PROMPT_FILE=/sandbox/marketing-system-prompt.md
 
 USER root

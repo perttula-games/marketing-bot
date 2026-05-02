@@ -29,6 +29,14 @@ if [[ -d /opt/nemoclaw-workspace-seed ]] && [[ -z "$(ls -A "$WS_DIR" 2>/dev/null
   cp -r /opt/nemoclaw-workspace-seed/. "$WS_DIR/"
 fi
 
+# Defensive bootstrap: some sandbox builds miss /sandbox/.openclaw/openclaw.json,
+# which prevents gateway token export and breaks `openclaw tui`.
+if [[ ! -f /sandbox/.openclaw/openclaw.json ]] && command -v openclaw >/dev/null 2>&1; then
+  if ! openclaw setup >> "$LOG_FILE" 2>&1; then
+    echo "warning: openclaw setup bootstrap failed; tui may require manual setup" >> "$LOG_FILE"
+  fi
+fi
+
 # Launch scheduler in the background. The sandbox init reaps it on shutdown.
 nohup nemo-bot schedule --config "$SCHEDULE_CFG" \
   >> "$LOG_FILE" 2>&1 &

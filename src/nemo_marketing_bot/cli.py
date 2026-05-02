@@ -10,7 +10,6 @@ from rich.console import Console
 from rich.table import Table
 
 from .creator_outreach import build_creator_plan, creator_plan_to_csv, parse_creator_channels
-from .growth import build_growth_plan, growth_plan_to_csv, growth_plan_to_markdown, parse_growth_channels
 from .ingest import brief_from_cli, briefs_from_rss
 from .models import Platform, PublishPlatform
 from .pipeline import (
@@ -35,11 +34,9 @@ from .strategy import (
 app = typer.Typer(add_completion=False, help="NVIDIA Nemotron marketing bot for game marketing channels.")
 review_app = typer.Typer(help="Review, edit, approve and publish queued drafts.")
 creator_app = typer.Typer(help="Plan creator outreach and manual channel setup.")
-growth_app = typer.Typer(help="Plan organic follower growth work for manual social accounts.")
 strategy_app = typer.Typer(help="Manage the editable marketing system prompt.")
 app.add_typer(review_app, name="review")
 app.add_typer(creator_app, name="creators")
-app.add_typer(growth_app, name="growth")
 app.add_typer(strategy_app, name="strategy")
 console = Console()
 
@@ -267,9 +264,9 @@ def _print_outreach_templates(plan) -> None:  # type: ignore[no-untyped-def]
 
 @creator_app.command("plan")
 def creators_plan(
-    game_name: str = typer.Option("Kalma", "--game", help="Game / project name."),
-    genre: str = typer.Option("PC first-person survival horror", "--genre", help="Short genre or positioning."),
-    audience: str = typer.Option("PC horror players", "--audience", help="Primary audience."),
+    game_name: str = typer.Option("NemoClaw", "--game", help="Game / project name."),
+    genre: str = typer.Option("PC indie/AA game", "--genre", help="Short genre or positioning."),
+    audience: str = typer.Option("PC and console players", "--audience", help="Primary audience."),
     budget: str = typer.Option("organic-first / low paid test", "--budget", help="Budget posture for outreach."),
     language: str = typer.Option("fi,en", "--language", help="Creator language targets."),
     store_url: str | None = typer.Option(None, "--store-url", help="Steam/store URL if available."),
@@ -300,9 +297,9 @@ def creators_plan(
 @creator_app.command("export")
 def creators_export(
     output: Path = typer.Option(Path("creator-outreach.csv"), "--output", "-o", help="CSV file to write."),
-    game_name: str = typer.Option("Kalma", "--game", help="Game / project name."),
-    genre: str = typer.Option("PC first-person survival horror", "--genre", help="Short genre or positioning."),
-    audience: str = typer.Option("PC horror players", "--audience", help="Primary audience."),
+    game_name: str = typer.Option("NemoClaw", "--game", help="Game / project name."),
+    genre: str = typer.Option("PC indie/AA game", "--genre", help="Short genre or positioning."),
+    audience: str = typer.Option("PC and console players", "--audience", help="Primary audience."),
     budget: str = typer.Option("organic-first / low paid test", "--budget", help="Budget posture for outreach."),
     language: str = typer.Option("fi,en", "--language", help="Creator language targets."),
     store_url: str | None = typer.Option(None, "--store-url", help="Steam/store URL if available."),
@@ -328,77 +325,6 @@ def creators_export(
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(creator_plan_to_csv(plan), encoding="utf-8")
     console.print(f"[green]Wrote creator outreach CSV:[/green] {output}")
-
-
-# ---------------------------------------------------------------------------
-# Organic follower growth planning: `nemo-bot growth ...`
-# ---------------------------------------------------------------------------
-
-
-@growth_app.command("plan")
-def growth_plan(
-    game_name: str = typer.Option("Kalma", "--game", help="Game / project name."),
-    positioning: str = typer.Option("PC first-person survival horror", "--positioning", help="Short positioning."),
-    audience: str = typer.Option(
-        "PC horror players and indie horror developers",
-        "--audience",
-        help="Audience to find and engage.",
-    ),
-    channels: str | None = typer.Option(None, "--channels", "-c", help="Comma-separated channels: bluesky,x."),
-    daily_follow_limit: int = typer.Option(15, "--daily-follow-limit", min=0, help="Manual follow cap per channel."),
-    daily_like_limit: int = typer.Option(12, "--daily-like-limit", min=0, help="Manual like cap per channel."),
-    daily_reply_limit: int = typer.Option(10, "--daily-reply-limit", min=0, help="Manual reply cap per channel."),
-) -> None:
-    """Print a safe manual follower-growth plan."""
-    try:
-        wanted = parse_growth_channels(channels)
-    except ValueError as err:
-        raise typer.BadParameter(str(err)) from err
-    plan = build_growth_plan(
-        game_name=game_name,
-        positioning=positioning,
-        audience=audience,
-        channels=wanted,
-        daily_follow_limit=daily_follow_limit,
-        daily_like_limit=daily_like_limit,
-        daily_reply_limit=daily_reply_limit,
-    )
-    console.print(growth_plan_to_markdown(plan))
-
-
-@growth_app.command("export")
-def growth_export(
-    output: Path = typer.Option(Path("growth-actions.csv"), "--output", "-o", help="CSV file to write."),
-    game_name: str = typer.Option("Kalma", "--game", help="Game / project name."),
-    positioning: str = typer.Option("PC first-person survival horror", "--positioning", help="Short positioning."),
-    audience: str = typer.Option(
-        "PC horror players and indie horror developers",
-        "--audience",
-        help="Audience to find and engage.",
-    ),
-    channels: str | None = typer.Option(None, "--channels", "-c", help="Comma-separated channels: bluesky,x."),
-    daily_follow_limit: int = typer.Option(15, "--daily-follow-limit", min=0, help="Manual follow cap per channel."),
-    daily_like_limit: int = typer.Option(12, "--daily-like-limit", min=0, help="Manual like cap per channel."),
-    daily_reply_limit: int = typer.Option(10, "--daily-reply-limit", min=0, help="Manual reply cap per channel."),
-) -> None:
-    """Export the follower-growth action plan to CSV."""
-    _reject_sensitive_output_path(output)
-    try:
-        wanted = parse_growth_channels(channels)
-    except ValueError as err:
-        raise typer.BadParameter(str(err)) from err
-    plan = build_growth_plan(
-        game_name=game_name,
-        positioning=positioning,
-        audience=audience,
-        channels=wanted,
-        daily_follow_limit=daily_follow_limit,
-        daily_like_limit=daily_like_limit,
-        daily_reply_limit=daily_reply_limit,
-    )
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(growth_plan_to_csv(plan), encoding="utf-8")
-    console.print(f"[green]Wrote growth actions CSV:[/green] {output}")
 
 
 # ---------------------------------------------------------------------------
