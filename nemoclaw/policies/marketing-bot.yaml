@@ -150,7 +150,16 @@ network_policies:
           - allow: { method: POST, path: "/xrpc/com.atproto.server.createSession" }
           - allow: { method: POST, path: "/xrpc/com.atproto.server.refreshSession" }
           - allow: { method: POST, path: "/xrpc/com.atproto.repo.createRecord" }
+          - allow: { method: POST, path: "/xrpc/com.atproto.repo.uploadBlob" }
           - allow: { method: GET,  path: "/xrpc/**" }
+    binaries:
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/python }
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/python3 }
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/nemo-bot }
+      - { path: /usr/bin/python3 }
+      - { path: /usr/bin/curl }
+      - { path: /usr/local/bin/node }
+      - { path: /usr/bin/node }
 
   devlog-direct:
     name: devlog-direct
