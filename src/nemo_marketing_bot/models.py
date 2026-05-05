@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-PublishPlatform = Literal["linkedin", "x", "instagram", "bluesky"]
+PublishPlatform = Literal["linkedin", "x", "instagram", "bluesky", "discord"]
 ContentPlatform = Literal[
     "linkedin",
     "x",

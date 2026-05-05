@@ -61,3 +61,12 @@ def test_publish_bundle_treats_instagram_as_manual_channel() -> None:
     )
 
     assert publish_bundle(bundle) == {"instagram": "manual: no API publisher configured"}
+
+
+def test_publish_bundle_supports_discord_in_dry_run() -> None:
+    bundle = PostBundle(
+        brief=Brief(topic="Demo reveal"),
+        posts=[GeneratedPost(platform="discord", text="Kalma first look")],
+    )
+
+    assert publish_bundle(bundle) == {"discord": "dry-run"}

@@ -46,8 +46,9 @@ PLATFORM_RULES: dict[Platform, str] = {
         "wishlist or demo CTA. No sales hype."
     ),
     "discord": (
-        "Discord community post. 300-900 characters. Friendly, direct, and specific. "
-        "Use a clear event/update title, what members can do next, and one lightweight CTA."
+        "Discord community post. Hard 2000 character limit, preferred 300-900. "
+        "Friendly, direct, and specific. Use a short title line first, then body lines "
+        "with clear next steps and one lightweight CTA. Avoid @everyone and @here mentions."
     ),
     "tiktok": (
         "TikTok / Reels / Shorts short-form video script. 8-25 seconds. Include a first-second "

@@ -7,14 +7,14 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
 ## Features
 
 - Generates posts that follow each platform's rules (length, tone, hashtags).
-- Drafts manual-channel content for Steam, Discord, TikTok/Reels/Shorts,
+- Drafts manual-channel content for Steam, TikTok/Reels/Shorts,
   YouTube, Reddit and Jodel.
 - Plans creator outreach by channel: target profile, search queries,
   deliverables, acceptance criteria, metrics and reusable DM templates.
 - Uses an editable marketing system prompt so strategy and brand voice can be
   changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
-- Publishes via official APIs: LinkedIn UGC Posts, X API v2, Instagram Graph API.
+- Publishes via APIs: LinkedIn UGC Posts, Bluesky AT Protocol, and Discord webhooks.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
 - `DRY_RUN=true` (default) prints posts instead of publishing — safe to try.
 
@@ -69,6 +69,7 @@ listed users can approve or publish.
 | LinkedIn | https://www.linkedin.com/developers/ → create app → Sign In with LinkedIn v2 + `w_member_social` | Obtain a user access token + your `urn:li:person:<id>`. |
 | X / Twitter | https://developer.x.com/ → project → User authentication settings (OAuth 1.0a, Read+Write) | Set the 4 OAuth 1.0a keys/secrets. |
 | Instagram | https://developers.facebook.com/ → Business app → Instagram Graph API | Link an IG Business/Creator account to a FB Page; get a long-lived token and the IG user id. |
+| Discord | Server settings → Integrations → Webhooks | Create a webhook for the target channel and set `DISCORD_WEBHOOK_URL`. |
 
 ## Usage
 
@@ -92,8 +93,8 @@ nemo-bot generate \
 ```
 
 `all-content` includes LinkedIn, X, Instagram, Steam, Discord, TikTok, YouTube,
-Reddit and Jodel drafts. Only LinkedIn, X and Instagram have API publishers;
-the other channels are intentionally manual drafts.
+Reddit and Jodel drafts. Live API publishing is available for LinkedIn,
+Bluesky, and Discord; all other channels are intentionally manual drafts.
 
 ### Creator outreach and page setup
 
@@ -124,7 +125,7 @@ tracking pattern, creator support path and deliverable expectations.
 ```bash
 # Set DRY_RUN=false in .env once you're ready to actually post.
 nemo-bot post --topic "Customer story: ACME" --details "Deployed in 3 weeks." \
-  --platforms linkedin,x
+  --platforms linkedin,bluesky,discord
 ```
 
 ### From an RSS feed
@@ -167,7 +168,7 @@ src/nemo_marketing_bot/
   ingest.py       # CLI + RSS -> Brief
   models.py       # Brief, GeneratedPost, PostBundle
   pipeline.py     # generate -> publish glue
-  publishers.py   # LinkedIn / X / Instagram
+  publishers.py   # LinkedIn / Bluesky / Discord (+ optional X/Instagram clients)
   scheduler.py    # APScheduler runner
   strategy.py     # Editable marketing system prompt loader
 ```
@@ -178,11 +179,11 @@ src/nemo_marketing_bot/
   one in the post's `image_prompt` (when it starts with `http`). Extending the
   pipeline with an image generator (e.g. an NVIDIA NIM diffusion endpoint or
   an S3-hosted render) is a natural next step.
-- **TikTok, YouTube, Steam, Discord, Reddit and Jodel are draft-only channels.**
+- **TikTok, YouTube, Steam, Reddit and Jodel are draft-only channels.**
   The bot creates the copy/script/checklist, then a human publishes or uploads
   it manually through the platform UI.
-- **X free tier** allows ~17 posts/24h per user — don't wire up high-frequency
-  RSS jobs without monitoring quota.
+- **Discord webhooks** are secret credentials. If leaked, rotate the webhook
+  from Discord server settings.
 - **LinkedIn tokens expire** (60 days typical). Rotate or automate refresh.
 - The generator uses `temperature=0.7`; tweak in `generator.py` if you want
   more deterministic output.

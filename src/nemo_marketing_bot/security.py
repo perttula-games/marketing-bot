@@ -249,7 +249,13 @@ def check_post_safety(
 ) -> SafetyReport:
     """Run pre-publish guardrails. Returns a SafetyReport with ok=True/False."""
     report = SafetyReport(ok=True)
-    limits = max_chars or {"x": 280, "bluesky": 300, "linkedin": 3000, "instagram": 2200}
+    limits = max_chars or {
+        "x": 280,
+        "bluesky": 300,
+        "linkedin": 3000,
+        "instagram": 2200,
+        "discord": 2000,
+    }
 
     # 1) Length
     cap = limits.get(platform)
@@ -272,7 +278,18 @@ def check_post_safety(
     if text.count("http://") + text.count("https://") > 3:
         report.warn("more than 3 URLs in a single post")
 
-    # 4) Instagram image URL must be in the allowlist
+    # 4) Discord-specific checks: avoid noisy mentions and nudge message shape
+    if platform == "discord":
+        lower_text = text.lower()
+        if "@everyone" in lower_text or "@here" in lower_text:
+            report.fail("discord post contains mass-mention (@everyone/@here)")
+        first_line = text.strip().splitlines()[0] if text.strip() else ""
+        if first_line and len(first_line) > 120:
+            report.warn("discord title line is long; keep first line under 120 chars")
+        if "\n" not in text.strip():
+            report.warn("discord post should usually include a title line and body")
+
+    # 5) Instagram image URL must be in the allowlist
     if platform == "instagram":
         if not image_url:
             report.fail("instagram requires image_url")

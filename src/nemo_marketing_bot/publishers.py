@@ -406,11 +406,84 @@ class BlueskyPublisher:
         return publish_id
 
 
+class DiscordPublisher:
+    """Publishes a message to Discord using an incoming webhook URL."""
+
+    platform = "discord"
+
+    def _extract_first_url(self, text: str) -> str | None:
+        match = re.search(r"https?://\S+", text)
+        if not match:
+            return None
+        return match.group(0).rstrip(".,;:!?)'\"")
+
+    def _build_payload(self, post: GeneratedPost) -> dict[str, Any]:
+        body = post.render()
+        clean_text = post.text.strip()
+        first_line = clean_text.splitlines()[0].strip() if clean_text else ""
+        title = first_line.lstrip("#").strip()[:256] if first_line else ""
+
+        embed: dict[str, Any] = {"description": body}
+        if title and title != body:
+            embed["title"] = title
+
+        if post.image_prompt and post.image_prompt.startswith("https://"):
+            embed["image"] = {"url": post.image_prompt}
+
+        payload: dict[str, Any] = {
+            "content": body,
+            "allowed_mentions": {"parse": []},
+            "embeds": [embed],
+        }
+
+        cta_url = self._extract_first_url(body)
+        if cta_url:
+            payload["components"] = [
+                {
+                    "type": 1,
+                    "components": [
+                        {
+                            "type": 2,
+                            "style": 5,
+                            "label": "Open link",
+                            "url": cta_url,
+                        }
+                    ],
+                }
+            ]
+
+        return payload
+
+    def publish(self, post: GeneratedPost) -> str:
+        body = post.render()
+        if settings.dry_run:
+            logger.info("[DRY RUN] Discord message (%d chars):\n%s", len(body), body)
+            return "dry-run"
+        if not settings.discord_webhook_url:
+            raise RuntimeError("Discord webhook missing. Set DISCORD_WEBHOOK_URL.")
+        if len(body) > 2000:
+            raise RuntimeError(f"Discord message exceeds 2000 chars (got {len(body)}).")
+
+        with httpx.Client(timeout=30) as client:
+            # wait=true returns message object that includes a stable message id
+            resp = client.post(
+                settings.discord_webhook_url,
+                params={"wait": "true"},
+                json=self._build_payload(post),
+            )
+            resp.raise_for_status()
+            message_id = str(resp.json().get("id", "unknown"))
+
+        logger.info("Discord message published: %s", message_id)
+        return message_id
+
+
 _REGISTRY: dict[str, type[Publisher]] = {
     "linkedin": LinkedInPublisher,
     "x": XPublisher,
     "instagram": InstagramPublisher,
     "bluesky": BlueskyPublisher,
+    "discord": DiscordPublisher,
 }
 
 

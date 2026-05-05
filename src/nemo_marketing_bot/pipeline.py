@@ -13,7 +13,7 @@ from .security import SafetyReport, check_post_safety
 
 logger = logging.getLogger(__name__)
 
-PUBLISH_PLATFORMS: list[PublishPlatform] = ["linkedin", "bluesky"]
+PUBLISH_PLATFORMS: list[PublishPlatform] = ["linkedin", "bluesky", "discord"]
 ALL_PLATFORMS: list[PublishPlatform] = PUBLISH_PLATFORMS
 CONTENT_PLATFORMS: list[Platform] = [
     "linkedin",

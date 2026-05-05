@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     telegram_approver_user_ids: str = Field(default="", alias="TELEGRAM_APPROVER_USER_IDS")
     telegram_poll_seconds: int = Field(default=10, alias="TELEGRAM_POLL_SECONDS")
 
+    # Discord publisher (optional)
+    discord_webhook_url: str = Field(default="", alias="DISCORD_WEBHOOK_URL")
+
 
 settings = Settings()
 

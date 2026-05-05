@@ -194,6 +194,24 @@ def test_safety_warns_on_too_many_urls() -> None:
     assert r.warnings
 
 
+def test_safety_enforces_discord_hard_cap() -> None:
+    r = check_post_safety("a" * 2100, platform="discord")
+    assert not r.ok
+    assert any("discord limit of 2000" in i for i in r.issues)
+
+
+def test_safety_blocks_discord_mass_mentions() -> None:
+    r = check_post_safety("Heads up @everyone patch is live", platform="discord")
+    assert not r.ok
+    assert any("mass-mention" in i for i in r.issues)
+
+
+def test_safety_warns_for_single_line_discord_message() -> None:
+    r = check_post_safety("Single line patch note", platform="discord")
+    assert r.ok
+    assert any("title line and body" in w for w in r.warnings)
+
+
 def test_safety_report_dataclass_defaults() -> None:
     r = SafetyReport(ok=True)
     assert r.issues == [] and r.warnings == []
