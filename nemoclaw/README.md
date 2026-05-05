@@ -47,6 +47,38 @@ nemoclaw marketingbot connect
 nemoclaw marketingbot skill install nemoclaw/skills/marketing-bot
 ```
 
+## Updating the network policy
+
+`nemoclaw policy-add` reads presets from
+`~/.nemoclaw/source/nemoclaw-blueprint/policies/presets/`, **not** from the
+repo. After editing `nemoclaw/policies/marketing-bot.yaml` you must re-sync
+and re-apply it:
+
+```bash
+# 1) Sync repo edits to the blueprint dir.
+cp nemoclaw/policies/marketing-bot.yaml \
+   ~/.nemoclaw/source/nemoclaw-blueprint/policies/presets/
+
+# 2) Detach the old version (interactive: enter the preset's number, then Y).
+nemoclaw marketingbot policy-remove marketing-bot
+
+# 3) Re-apply the updated preset (interactive: number + Y).
+nemoclaw marketingbot policy-add marketing-bot
+
+# 4) Verify the rule landed.
+nemoclaw marketingbot status | grep -A 30 "bluesky:"
+
+# 5) Smoke-test from inside the sandbox.
+nemoclaw marketingbot connect
+# sandbox$ curl -sS -o /dev/null -w "HTTP %{http_code}\n" https://bsky.social/xrpc/_health
+# Expect: HTTP 200 (proxy lets the host through).
+```
+
+The proxy at `10.200.0.1:3128` is the in-sandbox shield. Its allowlist is the
+merged `network_policies` shown in `nemoclaw <name> status`. Until the preset
+is re-applied, a sandbox keeps the old policy version even if the YAML on disk
+has changed.
+
 ## Day-to-day
 
 ```bash

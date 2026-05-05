@@ -17,6 +17,8 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
 - Publishes via APIs: LinkedIn UGC Posts, Bluesky AT Protocol, and Discord webhooks.
 - Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
 - `DRY_RUN=true` (default) prints posts instead of publishing — safe to try.
+- Deployable as a NemoClaw sandbox with an in-sandbox agent ("Nemo") that
+  drives the CLI on your behalf — see [nemoclaw/README.md](nemoclaw/README.md).
 
 ## Setup
 
