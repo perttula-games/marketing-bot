@@ -49,7 +49,6 @@ nohup vncserver "$DISPLAY" \
   -geometry "$VNC_GEOMETRY" \
   -depth "$VNC_DEPTH" \
   -rfbauth "$VNC_HOME/passwd" \
-  -localhost no \
   >> "$LOG_FILE" 2>&1 &
 
 echo "VNC server starting (display=${DISPLAY}, port=${VNC_PORT}, log=${LOG_FILE})" | tee -a "$LOG_FILE"

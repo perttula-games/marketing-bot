@@ -21,7 +21,7 @@ USER root
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
      git ca-certificates python3-venv \
-     xvfb tightvncserver firefox-esr x11-utils xterm fluxbox dbus-x11 \
+     xvfb tightvncserver firefox-esr x11-utils xterm fluxbox dbus-x11 xfonts-base \
  && rm -rf /var/lib/apt/lists/*
 
 # Install the marketing bot package itself.
