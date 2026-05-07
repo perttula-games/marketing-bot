@@ -149,6 +149,51 @@ def post(
 
 
 @app.command()
+def publish(
+    platform: str = typer.Option(..., "--platform", help="Target platform (e.g. bluesky, linkedin, discord)."),
+    text: str | None = typer.Option(None, "--text", help="Exact post text to publish. Use --from-file to read from disk instead."),
+    from_file: Path | None = typer.Option(None, "--from-file", help="Read post text from this file (UTF-8)."),
+    hashtags: str = typer.Option("", "--hashtags", help="Comma-separated hashtags appended on a new line."),
+    image_prompt: str | None = typer.Option(None, "--image-prompt", help="Public image URL (required for Instagram, optional preview hint elsewhere)."),
+) -> None:
+    """Publish a pre-written post verbatim through the proper Publisher.
+
+    Use this instead of raw HTTP calls when the user has supplied exact copy
+    they want posted as-is. The proper Publisher class handles platform
+    quirks like Bluesky link-preview embeds via uploadBlob.
+    """
+    from .publishers import get_publisher
+    from .models import GeneratedPost
+
+    if platform not in set(PUBLISH_PLATFORMS):
+        raise typer.BadParameter(
+            f"--platform must be one of: {', '.join(sorted(PUBLISH_PLATFORMS))}"
+        )
+    if (text is None) == (from_file is None):
+        raise typer.BadParameter("Provide exactly one of --text or --from-file.")
+
+    if from_file is not None:
+        body = from_file.read_text(encoding="utf-8").strip()
+    else:
+        assert text is not None
+        body = text
+
+    if not body:
+        raise typer.BadParameter("Post text is empty.")
+
+    tag_list = [t.strip().lstrip("#") for t in hashtags.split(",") if t.strip()]
+    post_obj = GeneratedPost(
+        platform=platform,  # type: ignore[arg-type]
+        text=body,
+        hashtags=tag_list,
+        image_prompt=image_prompt,
+    )
+    publisher = get_publisher(platform)
+    result = publisher.publish(post_obj)
+    console.print({platform: result})
+
+
+@app.command()
 def from_rss(
     feed: str = typer.Option(..., "--feed", "-f", help="RSS/Atom URL."),
     limit: int = typer.Option(1, "--limit", "-n", help="Max entries to process."),

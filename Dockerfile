@@ -17,9 +17,11 @@ ENV MARKETING_SYSTEM_PROMPT_FILE=/sandbox/marketing-system-prompt.md
 USER root
 
 # System deps for feedparser + tweepy + pillow (in case image utils get added)
+# Also install xvfb + VNC for optional GUI access via remote desktop.
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
      git ca-certificates python3-venv \
+     xvfb tightvncserver firefox-esr x11-utils xterm fluxbox dbus-x11 \
  && rm -rf /var/lib/apt/lists/*
 
 # Install the marketing bot package itself.
@@ -48,5 +50,9 @@ COPY nemoclaw/skills/marketing-bot/ /sandbox/.agents/skills/marketing-bot/
 # Supervisor entry: start the scheduler alongside the normal agent loop.
 COPY nemoclaw/entrypoint.d/10-nemo-bot-scheduler.sh /etc/nemoclaw/entrypoint.d/10-nemo-bot-scheduler.sh
 RUN chmod +x /etc/nemoclaw/entrypoint.d/10-nemo-bot-scheduler.sh
+
+# VNC server entry: optional remote desktop access.
+COPY nemoclaw/entrypoint.d/20-vnc-server.sh /etc/nemoclaw/entrypoint.d/20-vnc-server.sh
+RUN chmod +x /etc/nemoclaw/entrypoint.d/20-vnc-server.sh
 
 USER sandbox

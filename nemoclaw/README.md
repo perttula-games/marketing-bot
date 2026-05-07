@@ -166,3 +166,45 @@ survives.
   before a rebuild if you want to change the baked-in default.
 - **More skills**: drop a new folder under `skills/` and run
   `nemoclaw marketingbot skill install nemoclaw/skills/<your-skill>`.
+
+## Remote desktop (VNC)
+
+The sandbox includes Xvfb (virtual framebuffer) and tightvncserver, so you can
+run GUI applications remotely. Firefox is pre-installed for browsing.
+
+**Connect from the host:**
+
+```bash
+vncviewer localhost:5900
+```
+
+Then inside the VNC window, launch Firefox or other GUI tools:
+
+```bash
+# Inside the VNC desktop (right-click → xterm, or from sandbox shell):
+DISPLAY=:99 firefox &
+```
+
+**Disable VNC** (default on, minimal overhead):
+
+```bash
+# Inside `nemoclaw marketingbot connect`, edit /sandbox/.env:
+VNC_DISABLED=true
+```
+
+Then restart the sandbox to stop VNC services.
+
+**Configuration:**
+
+By default, VNC uses display `:99`, resolution `1280x1024`, and 24-bit color.
+Change in `/sandbox/.env`:
+
+```bash
+VNC_GEOMETRY=1920x1080
+VNC_DEPTH=32
+VNC_DISABLED=false
+```
+
+The VNC server binds to all interfaces (`:5900` on all IPs). For remote clusters,
+use `vncviewer <cluster-ip>:5900` or set up port forwarding via the host.
+Logs are in `/sandbox/.vnc/vnc-server.log`.

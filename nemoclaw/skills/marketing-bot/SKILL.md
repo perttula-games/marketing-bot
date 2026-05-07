@@ -39,6 +39,7 @@ Always prefer `nemo-bot` CLI over raw Python calls.
 | `nemo-bot generate --topic "<t>" --details "<d>" [--url <u>] [--tags a,b]` | Draft posts without publishing. Always run this first. |
 | `nemo-bot generate --topic "<t>" --details "<d>" --platforms all-content` | Draft the broader manual stack: LinkedIn, X, Bluesky, Instagram, Steam, Discord, TikTok, YouTube, Reddit and Jodel. |
 | `nemo-bot post --topic "<t>" --details "<d>" --platforms linkedin,bluesky` | Generate AND publish. Requires `DRY_RUN=false`. |
+| `nemo-bot publish --platform bluesky --text "<exact copy>"` | Publish user-supplied text verbatim through the proper Publisher class. Use this when the user already wrote the post — never hand-roll `httpx`/`createSession`/`createRecord` calls; doing so skips link-preview embed (uploadBlob) and produces previewless posts. |
 | `nemo-bot from-rss --feed <url> --limit N [--publish]` | Turn latest feed items into posts. |
 | `nemo-bot schedule --config schedule.yaml` | Run the APScheduler loop (already managed as a sandbox service — do not start a second one). |
 | `nemo-bot creators plan --game "<name>" --genre "<genre>" [--channels tiktok,youtube,lurkit]` | Print manual page setup tasks, creator target profiles, search queries, deliverables, metrics and outreach templates. |

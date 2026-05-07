@@ -18,6 +18,12 @@ network_policies:
         rules:
           - allow: { method: POST, path: "/v1/**" }
           - allow: { method: GET,  path: "/v1/**" }
+    binaries:
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/python }
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/python3 }
+      - { path: /usr/bin/python3 }
+      - { path: /usr/local/bin/node }
+      - { path: /usr/bin/node }
 
   deepseek-inference:
     name: deepseek-inference
@@ -33,6 +39,9 @@ network_policies:
           - allow: { method: POST, path: "/v1/chat/completions" }
           - allow: { method: GET,  path: "/v1/models" }
     binaries:
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/python }
+      - { path: /usr/local/lib/nemo-marketing-bot/.venv/bin/python3 }
+      - { path: /usr/bin/python3 }
       - { path: /usr/local/bin/node }
       - { path: /usr/bin/node }
 
