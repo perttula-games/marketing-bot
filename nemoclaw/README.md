@@ -26,8 +26,8 @@ cp nemoclaw/policies/marketing-bot.yaml \
    ~/.nemoclaw/source/nemoclaw-blueprint/policies/presets/
 
 # 2) Onboard a sandbox using this custom image.
-# Use the repo-root Dockerfile. `--from nemoclaw/Dockerfile` does not include
-# pyproject.toml or src/ in NemoClaw's build context.
+# Use the repo-root Dockerfile. It must be run from the repository root because
+# NemoClaw uses the Dockerfile directory as the Docker build context.
 nemoclaw onboard --from Dockerfile \
   --yes-i-accept-third-party-software
 # Follow the prompts — name the sandbox e.g. "marketingbot".
@@ -175,14 +175,18 @@ run GUI applications remotely. Firefox is pre-installed for browsing.
 **Connect from the host:**
 
 ```bash
-vncviewer localhost:5900
+vncviewer <forwarded-host>:5900
 ```
+
+When NemoClaw runs inside the local OpenShell Docker runtime, host `localhost`
+may not be the same network namespace as the sandbox. Use a host-side port
+forward or the Docker bridge IP printed by your forwarding command.
 
 Then inside the VNC window, launch Firefox or other GUI tools:
 
 ```bash
-# Inside the VNC desktop (right-click → xterm, or from sandbox shell):
-DISPLAY=:99 firefox &
+# Inside the VNC desktop (right-click -> xterm, or from sandbox shell):
+DISPLAY=:0 firefox-esr &
 ```
 
 **Disable VNC** (default on, minimal overhead):
@@ -196,15 +200,16 @@ Then restart the sandbox to stop VNC services.
 
 **Configuration:**
 
-By default, VNC uses display `:99`, resolution `1280x1024`, and 24-bit color.
+By default, VNC uses display `:0`, port `5900`, resolution `1280x1024`,
+and 24-bit color.
 Change in `/sandbox/.env`:
 
 ```bash
+VNC_DISPLAY=0
 VNC_GEOMETRY=1920x1080
 VNC_DEPTH=32
 VNC_DISABLED=false
 ```
 
-The VNC server binds to all interfaces (`:5900` on all IPs). For remote clusters,
-use `vncviewer <cluster-ip>:5900` or set up port forwarding via the host.
-Logs are in `/sandbox/.vnc/vnc-server.log`.
+The default VNC password is `nemo1234`; set `VNC_PASSWORD` before first boot to
+change it. Logs are in `/sandbox/.vnc/vnc-server.log`.
