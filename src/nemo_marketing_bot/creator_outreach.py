@@ -188,10 +188,10 @@ def _build_setup_task(channel: CreatorChannel) -> ManualSetupTask:
             checklist=(
                 "Create Steamworks app and Coming Soon page",
                 "Add one-sentence player fantasy above the fold",
-                "Add UTM-ready wishlist links for creator traffic",
+                "Add UTM-ready store links for creator traffic",
                 "Prepare first Steam Event draft for reveal or demo beat",
             ),
-            done_when="Public page has wishlist CTA, tags, media, and creator-specific tracking links.",
+            done_when="Public page has clear CTA, tags, media, and creator-specific tracking links.",
         ),
         "discord": ManualSetupTask(
             channel="discord",
@@ -212,7 +212,7 @@ def _build_setup_task(channel: CreatorChannel) -> ManualSetupTask:
             title="TikTok account",
             blocking_inputs=("handle", "profile image", "bio", "store or link hub URL"),
             checklist=(
-                "Reserve handle and write a bio with one clear wishlist CTA",
+                "Reserve handle and write a bio with one clear next-step CTA",
                 "Create first 15 short-form hooks from current gameplay footage",
                 "Save reusable caption and hashtag sets",
                 "Prepare creator whitelist / Spark Ads notes if paid tests start later",
@@ -225,7 +225,7 @@ def _build_setup_task(channel: CreatorChannel) -> ManualSetupTask:
             title="YouTube channel",
             blocking_inputs=("handle", "banner", "avatar", "trailer", "default links"),
             checklist=(
-                "Set handle, channel art, description, and default wishlist/Discord links",
+                "Set handle, channel art, description, and default site/Discord links",
                 "Create Shorts playlist, devlog playlist, and trailer playlist",
                 "Prepare thumbnail template for devlogs and feature breakdowns",
                 "Upload first Shorts batch from the same footage as TikTok/Reels",
@@ -297,7 +297,7 @@ def _build_creator_target(
     budget: str,
     language: str,
 ) -> CreatorTarget:
-    common_metrics = ("tracked link clicks", "wishlists or demo installs", "coverage quality", "creator response rate")
+    common_metrics = ("tracked link clicks", "demo installs or devlog reads", "coverage quality", "creator response rate")
     targets: dict[CreatorChannel, CreatorTarget] = {
         "tiktok": CreatorTarget(
             channel="tiktok",
@@ -417,7 +417,7 @@ def _build_creator_target(
             pitch_angle="Frame the game as a playable Finnish indie demo with a clear live moment.",
             deliverables=("showcase application", "demo booth/stream slot", "creator hands-on schedule"),
             acceptance_criteria=("real event fit", "demo is stable", "staff can capture follow-up content"),
-            metrics=("booth plays", "creator mentions", "wishlist lift", "press/partner leads"),
+            metrics=("booth plays", "creator mentions", "demo installs", "press/partner leads"),
         ),
         "lurkit": CreatorTarget(
             channel="lurkit",
@@ -453,7 +453,7 @@ def _build_creator_target(
             channel="linkedin",
             priority=3,
             target_profile="Game industry operators, Finnish studio founders, recruiters, investors, publisher scouts, and partner voices.",
-            why="Not a wishlist engine, but useful for legitimacy, hiring, and partnerships.",
+            why="Not a consumer discovery engine, but useful for legitimacy, hiring, and partnerships.",
             search_queries=(
                 'LinkedIn search: Finnish games industry indie studio publisher',
                 'LinkedIn groups/events: IGDA Finland, Neogames, Nordic Game',
@@ -461,7 +461,7 @@ def _build_creator_target(
             ),
             pitch_angle="Ask for a thoughtful repost or intro only when there is a real milestone.",
             deliverables=("founder repost", "partner intro", "milestone amplification"),
-            acceptance_criteria=("relevant professional audience", "no consumer-wishlist expectation", "clear business reason"),
+            acceptance_criteria=("relevant professional audience", "no consumer-conversion expectation", "clear business reason"),
             metrics=("profile visits", "inbound leads", "reposts", "partner conversations"),
         ),
     }
@@ -475,7 +475,7 @@ def _build_creator_target(
             pitch_angle="Confirm platform fit before spending outreach time.",
             deliverables=("store/platform page", "launch announcement", "tracked link"),
             acceptance_criteria=("confirmed release plan", "assets ready", "owner assigned"),
-            metrics=("page visits", "wishlists", "store conversion"),
+            metrics=("page visits", "demo installs", "store conversion"),
         )
     return targets[channel]
 
@@ -514,7 +514,7 @@ def _build_outreach_templates(
             "Core hook: [one sentence player fantasy]\n"
             "Allowed footage: [yes/no + embargo date]\n"
             "Best beats to show: [3 mechanics or moments]\n"
-            "CTA: wishlist on Steam or join Discord, one CTA per post\n"
+            "CTA: read the latest devlog or join Discord, one CTA per post\n"
             f"Store link: {store}\n"
             f"Discord/support: {discord}\n"
             "Disclosure: mark paid/sponsored content clearly when applicable."

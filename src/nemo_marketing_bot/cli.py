@@ -213,6 +213,92 @@ def from_rss(
             console.print(publish_bundle(bundle))
 
 
+@app.command()
+def devlog(
+    site: str = typer.Option(
+        "https://perttulagamestudio.com",
+        "--site",
+        "-s",
+        help="Website origin that publishes /devlog.json.",
+    ),
+    platforms: str | None = typer.Option(
+        None, "--platforms", "-p", help="Subset, e.g. 'linkedin,bluesky,discord' or 'all-content'."
+    ),
+    limit: int | None = typer.Option(
+        None, "--limit", "-n", help="Cap on devlog posts to process this run."
+    ),
+    all_posts: bool = typer.Option(
+        False, "--all", help="Process every post in the index, ignoring the seen-state file."
+    ),
+    publish: bool = typer.Option(
+        False, "--publish", help="Publish immediately. Without this, drafts go to the review queue."
+    ),
+    dry_state: bool = typer.Option(
+        False,
+        "--dry-state",
+        help="Do not update the seen-state file (useful for dry runs).",
+    ),
+) -> None:
+    """Generate marketing posts from the newest devlog entries on a Perttula site.
+
+    Reads ``<site>/devlog.json`` (built by the website's devlog-prerender
+    plugin), filters out slugs already processed, and either enqueues the
+    bundle for review or publishes immediately.
+    """
+    from .devlog import (
+        brief_from_devlog,
+        fetch_devlog_index,
+        filter_published,
+        filter_unseen,
+        mark_seen,
+    )
+
+    items = fetch_devlog_index(site)
+    if not items:
+        console.print("[yellow]No devlog entries found.[/yellow]")
+        raise typer.Exit(code=0)
+
+    items = filter_published(items)
+    if not items:
+        console.print("[yellow]No devlog posts have reached their publish date yet.[/yellow]")
+        raise typer.Exit(code=0)
+
+    candidates = items if all_posts else filter_unseen(items)
+    if not candidates:
+        console.print("[green]No new devlog posts since last run.[/green]")
+        raise typer.Exit(code=0)
+
+    if limit is not None and limit > 0:
+        candidates = candidates[:limit]
+
+    wanted = (
+        _parse_publish_platforms(platforms)
+        if publish
+        else _parse_platforms(platforms, default=list(ALL_PLATFORMS))
+    )
+
+    processed_slugs: list[str] = []
+    for item in candidates:
+        console.rule(f"[bold]{item.title}[/bold] ([dim]{item.slug}[/dim])")
+        brief = brief_from_devlog(item)
+        bundle = generate_bundle(brief, wanted)
+        _print_bundle(bundle)
+        if publish:
+            console.print(publish_bundle(bundle))
+        else:
+            ids = enqueue_bundle(bundle)
+            console.print(
+                f"[green]Queued {len(ids)} drafts:[/green] {', '.join(ids)}"
+            )
+        processed_slugs.append(item.slug)
+
+    if processed_slugs and not dry_state:
+        mark_seen(processed_slugs)
+        console.print(
+            f"[dim]Marked {len(processed_slugs)} slug(s) as seen.[/dim]"
+        )
+
+
 # ---------------------------------------------------------------------------
 # Editable marketing strategy prompt: `nemo-bot strategy ...`
 # ---------------------------------------------------------------------------

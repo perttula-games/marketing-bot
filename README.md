@@ -83,7 +83,7 @@ Generate content for the broader manual game marketing stack:
 ```bash
 nemo-bot generate \
   --topic "Demo reveal" \
-  --details "Show the new combat mechanic and route people to the Steam wishlist." \
+  --details "Show the new combat mechanic and route people to the latest devlog." \
   --platforms all-content
 ```
 

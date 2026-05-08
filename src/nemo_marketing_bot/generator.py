@@ -43,7 +43,7 @@ PLATFORM_RULES: dict[Platform, str] = {
     "steam": (
         "Steam Event / Announcement draft for an unreleased PC game. 500-1200 characters. "
         "Lead with the player-facing update, include 3 concrete bullets, and end with one "
-        "wishlist or demo CTA. No sales hype."
+        "clear next step (read the devlog, join Discord, or play the demo). No sales hype."
     ),
     "discord": (
         "Discord community post. Hard 2000 character limit, preferred 300-900. "
