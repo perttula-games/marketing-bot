@@ -1,7 +1,7 @@
 """Security helpers: URL validation, content guardrails, prompt-injection isolation.
 
 These functions are the single defensive layer between untrusted inputs (RSS
-feeds, LLM output, user-supplied URLs in `schedule.yaml`) and the publishers.
+feeds, LLM output, user-supplied URLs and CLI arguments) and the publishers.
 Keep them small and dependency-free so they can be unit-tested without network.
 """
 

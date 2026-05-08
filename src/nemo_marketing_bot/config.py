@@ -37,7 +37,6 @@ class Settings(BaseSettings):
     # General
     timezone: str = Field(default="Europe/Helsinki", alias="TIMEZONE")
     dry_run: bool = Field(default=True, alias="DRY_RUN")
-    allow_scheduled_autopublish: bool = Field(default=False, alias="ALLOW_SCHEDULED_AUTOPUBLISH")
     marketing_system_prompt_file: str = Field(
         default="marketing-system-prompt.md",
         alias="MARKETING_SYSTEM_PROMPT_FILE",

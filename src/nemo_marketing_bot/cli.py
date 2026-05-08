@@ -23,7 +23,6 @@ from .pipeline import (
     run_once,
 )
 from .review import ReviewStore, Status
-from .scheduler import run_scheduler
 from .strategy import (
     build_generation_system_prompt,
     load_editable_strategy_prompt,
@@ -212,14 +211,6 @@ def from_rss(
         _print_bundle(bundle)
         if publish:
             console.print(publish_bundle(bundle))
-
-
-@app.command()
-def schedule(
-    config: Path = typer.Option(Path("schedule.yaml"), "--config", "-c", exists=True, readable=True),
-) -> None:
-    """Run the blocking scheduler defined by a YAML config."""
-    run_scheduler(config)
 
 
 # ---------------------------------------------------------------------------

@@ -34,7 +34,6 @@ Draft -> approve -> publish.
 ## 2) Safe defaults before live
 
 - Keep DRY_RUN=true during setup and testing.
-- Keep ALLOW_SCHEDULED_AUTOPUBLISH=false.
 - Keep scheduled jobs in queue mode unless there is a separate go-live decision.
 
 ## 3) Validate with dry-run first
@@ -83,7 +82,8 @@ Approved workflow commands:
 If anything looks wrong:
 
 - Immediately set DRY_RUN=true.
-- Stop scheduled publishing by keeping ALLOW_SCHEDULED_AUTOPUBLISH=false.
+- Stop any external scheduler (cron / systemd timer / GitHub Actions) that
+  invokes `nemo-bot`.
 - Revoke affected platform token.
 - Rotate token and re-test in dry-run before next live attempt.
 

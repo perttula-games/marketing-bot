@@ -2,7 +2,7 @@
 
 Marketing content bot that uses **NVIDIA Nemotron** (via the OpenAI-compatible
 `integrate.api.nvidia.com` endpoint) to generate platform-native game marketing
-drafts, plan creator outreach, and publish supported posts on a cron schedule.
+drafts, plan creator outreach, and publish supported posts.
 
 ## Features
 
@@ -15,10 +15,9 @@ drafts, plan creator outreach, and publish supported posts on a cron schedule.
   changed without code changes.
 - Pulls briefs from either a CLI prompt or an RSS/Atom feed.
 - Publishes via APIs: LinkedIn UGC Posts, Bluesky AT Protocol, and Discord webhooks.
-- Schedules recurring campaigns and RSS polls from a YAML config (APScheduler).
+- Stateless one-shot CLI: drive recurring runs from cron, a systemd timer, or
+  a GitHub Actions schedule.
 - `DRY_RUN=true` (default) prints posts instead of publishing — safe to try.
-- Deployable as a NemoClaw sandbox with an in-sandbox agent ("Nemo") that
-  drives the CLI on your behalf — see [nemoclaw/README.md](nemoclaw/README.md).
 
 ## Setup
 
@@ -34,10 +33,10 @@ cp .env.example .env
 ### Marketing system prompt
 
 The strategy layer lives in `marketing-system-prompt.md` by default. Edit that
-file when you want to change how the bot positions NemoClaw, which content
+file when you want to change how the bot positions each game, which content
 pillars it prioritizes, or how creator outreach should sound. The generator
-reloads it on each run, so the next `generate`, `post`, `from-rss`, scheduled
-job, or review edit uses the newest text.
+reloads it on each run, so the next `generate`, `post`, `from-rss`, or review
+edit uses the newest text.
 
 Useful commands:
 
@@ -48,16 +47,10 @@ nemo-bot strategy show --compiled
 nemo-bot strategy init --path marketing-system-prompt.md
 ```
 
-In NemoClaw the image seeds this file to `/sandbox/marketing-system-prompt.md`.
-Ask the agent to edit that file when the marketing strategy changes, then ask it
-to run a dry-run draft before publishing.
-
 ### Safety defaults
 
-`DRY_RUN=true` is the default. Scheduled jobs also require a second explicit
-gate before they can publish live: set `auto_publish: true` on the job and
-`ALLOW_SCHEDULED_AUTOPUBLISH=true` in the environment. Quoted YAML values such
-as `auto_publish: "false"` are rejected instead of coerced.
+`DRY_RUN=true` is the default. Flip it to `false` in `.env` only when you are
+ready to publish live.
 
 For Telegram approvals, configure `TELEGRAM_APPROVER_CHAT_IDS`. If approvals
 happen in a group chat, also configure `TELEGRAM_APPROVER_USER_IDS` so only the
@@ -136,27 +129,50 @@ nemo-bot post --topic "Customer story: ACME" --details "Deployed in 3 weeks." \
 nemo-bot from-rss --feed https://blogs.nvidia.com/feed/ --limit 2 --publish
 ```
 
-### Scheduled / automated
+### Run on a schedule
 
-```bash
-nemo-bot schedule --config schedule.yaml
+The CLI is a stateless one-shot — drive it from any external scheduler.
+
+Example crontab (every 30 min, queue drafts for Telegram review):
+
+```cron
+*/30 * * * * cd /opt/marketing-bot && /opt/marketing-bot/.venv/bin/nemo-bot from-rss --feed https://example.com/feed.xml --limit 2 >> /var/log/marketing-bot.log 2>&1
 ```
 
-`schedule.yaml` defines cron-triggered jobs of type `topic` or `rss`. See the
-example included in the repo. Scheduled jobs use the same active marketing
-system prompt as manual CLI runs, so changing `marketing-system-prompt.md`
-updates future automated drafts.
+Example systemd timer (`/etc/systemd/system/marketing-bot.timer`):
 
-Scheduled jobs queue drafts by default. Live scheduled publishing requires both:
+```ini
+[Unit]
+Description=Run marketing-bot every 30 minutes
+
+[Timer]
+OnCalendar=*:0/30
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Example GitHub Actions (`.github/workflows/devlog.yml`):
 
 ```yaml
-auto_publish: true
-```
-
-and:
-
-```bash
-ALLOW_SCHEDULED_AUTOPUBLISH=true
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pip install -e .
+      - run: nemo-bot from-rss --feed "$FEED_URL" --limit 2
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          DRY_RUN: "false"
+          FEED_URL: ${{ vars.FEED_URL }}
 ```
 
 ## Project layout
@@ -171,7 +187,6 @@ src/nemo_marketing_bot/
   models.py       # Brief, GeneratedPost, PostBundle
   pipeline.py     # generate -> publish glue
   publishers.py   # LinkedIn / Bluesky / Discord (+ optional X/Instagram clients)
-  scheduler.py    # APScheduler runner
   strategy.py     # Editable marketing system prompt loader
 ```
 
