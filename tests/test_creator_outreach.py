@@ -51,4 +51,4 @@ def test_creator_plan_csv_exports_tracking_columns() -> None:
 
     assert "channel,priority,target_profile" in csv_text
     assert "tiktok" in csv_text
-    assert "wishlists or demo installs" in csv_text
+    assert "demo installs or devlog reads" in csv_text
