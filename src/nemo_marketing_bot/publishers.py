@@ -419,22 +419,14 @@ class DiscordPublisher:
 
     def _build_payload(self, post: GeneratedPost) -> dict[str, Any]:
         body = post.render()
-        clean_text = post.text.strip()
-        first_line = clean_text.splitlines()[0].strip() if clean_text else ""
-        title = first_line.lstrip("#").strip()[:256] if first_line else ""
-
-        embed: dict[str, Any] = {"description": body}
-        if title and title != body:
-            embed["title"] = title
-
-        if post.image_prompt and post.image_prompt.startswith("https://"):
-            embed["image"] = {"url": post.image_prompt}
-
         payload: dict[str, Any] = {
             "content": body,
             "allowed_mentions": {"parse": []},
-            "embeds": [embed],
         }
+
+        if post.image_prompt and post.image_prompt.startswith("https://"):
+            # Optional image-only embed; keep text in message content for clean layout.
+            payload["embeds"] = [{"image": {"url": post.image_prompt}}]
 
         cta_url = self._extract_first_url(body)
         if cta_url:

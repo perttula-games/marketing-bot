@@ -12,11 +12,14 @@ from nemo_marketing_bot.devlog import (
     DevlogItem,
     _parse_item,
     brief_from_devlog,
+    ensure_post_has_url,
     filter_published,
     filter_unseen,
     load_seen,
     mark_seen,
+    strip_discord_self_promo,
 )
+from nemo_marketing_bot.models import GeneratedPost
 
 
 def _item(slug: str = "the-bus", **overrides) -> DevlogItem:
@@ -133,3 +136,38 @@ def test_filter_published_keeps_missing_or_invalid_dates():
 def test_filter_published_defaults_to_today():
     future = _item("future", publish_date=str(date.today() + timedelta(days=5)))
     assert filter_published([future]) == []
+
+
+def test_ensure_post_has_url_appends_link_when_missing():
+    post = GeneratedPost(platform="discord", text="Short update", hashtags=[])
+    ensure_post_has_url(post, "https://perttulagamestudio.com/devlog/the-bus-into-kalma")
+    assert "https://perttulagamestudio.com/devlog/the-bus-into-kalma" in post.text
+
+
+def test_ensure_post_has_url_keeps_existing_link_unchanged():
+    text = "Read more: https://perttulagamestudio.com/devlog/the-bus-into-kalma"
+    post = GeneratedPost(platform="discord", text=text, hashtags=[])
+    ensure_post_has_url(post, "https://perttulagamestudio.com/devlog/the-bus-into-kalma")
+    assert post.text == text
+
+
+def test_strip_discord_self_promo_removes_join_discord_lines():
+    text = (
+        "The bus into Kalma sets the tone.\n\n"
+        "Read the full post here:\n"
+        "https://perttulagamestudio.com/devlog/the-bus-into-kalma\n\n"
+        "Join us on Discord to discuss.\n"
+        "[CTA: Read the devlog -> join the conversation]"
+    )
+    post = GeneratedPost(platform="discord", text=text, hashtags=["Story"])
+    strip_discord_self_promo(post)
+    assert "Join us on Discord" not in post.text
+    assert "CTA" not in post.text
+    assert "https://perttulagamestudio.com/devlog/the-bus-into-kalma" in post.text
+
+
+def test_strip_discord_self_promo_is_noop_for_other_platforms():
+    text = "Join us on Discord"
+    post = GeneratedPost(platform="bluesky", text=text, hashtags=[])
+    strip_discord_self_promo(post)
+    assert post.text == text

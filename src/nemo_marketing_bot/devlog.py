@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -22,7 +23,7 @@ from typing import Any
 
 import httpx
 
-from .models import Brief
+from .models import Brief, GeneratedPost
 from .security import assert_safe_url, sanitize_untrusted_text
 
 logger = logging.getLogger(__name__)
@@ -131,7 +132,7 @@ def brief_from_devlog(item: DevlogItem) -> Brief:
     detail_parts.append(
         "Source: latest devlog post on perttulagamestudio.com — "
         "drive readers to the full post and (where it fits the channel) "
-        "the studio Discord or demo."
+        "the studio Discord."
     )
     details = " ".join(detail_parts)
 
@@ -146,6 +147,52 @@ def brief_from_devlog(item: DevlogItem) -> Brief:
         url=item.url,
         tags=tags,
     )
+
+
+def ensure_post_has_url(post: GeneratedPost, url: str) -> GeneratedPost:
+    """Ensure a generated post contains the given canonical URL.
+
+    Some model outputs occasionally drop the link even when the brief includes
+    one. For devlog flows the permalink is mandatory, so we append it when
+    absent.
+    """
+    if not url:
+        return post
+    if re.search(r"https?://\S+", post.text):
+        return post
+    post.text = f"{post.text.rstrip()}\n\n{url}"
+    return post
+
+
+def strip_discord_self_promo(post: GeneratedPost) -> GeneratedPost:
+    """Remove Discord self-promo lines from Discord-channel posts.
+
+    When posting *inside* Discord, invites like "join our Discord" are noisy
+    and redundant. This strips common invitation lines while keeping the rest
+    of the message intact.
+    """
+    if post.platform != "discord":
+        return post
+
+    patterns = (
+        re.compile(r"\bjoin\b.*\bdiscord\b", flags=re.IGNORECASE),
+        re.compile(r"\bdiscord\b.*\b(open|chat|conversation|server)\b", flags=re.IGNORECASE),
+        re.compile(r"\bask\b.*#\w+", flags=re.IGNORECASE),
+        re.compile(r"^\[?cta:.*$", flags=re.IGNORECASE),
+    )
+
+    kept: list[str] = []
+    for line in post.text.splitlines():
+        stripped = line.strip()
+        if stripped and any(p.search(stripped) for p in patterns):
+            continue
+        kept.append(line)
+
+    cleaned = "\n".join(kept)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+    if cleaned:
+        post.text = cleaned
+    return post
 
 
 # ---------------------------------------------------------------------------

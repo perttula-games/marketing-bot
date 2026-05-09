@@ -27,7 +27,7 @@ python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 cp .env.example .env
-# Fill in NVIDIA_API_KEY (from https://build.nvidia.com/) at minimum.
+# Fill in LLM_API_KEY at minimum.
 ```
 
 ### Marketing system prompt
@@ -170,7 +170,7 @@ jobs:
       - run: pip install -e .
       - run: nemo-bot from-rss --feed "$FEED_URL" --limit 2
         env:
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           DRY_RUN: "false"
           FEED_URL: ${{ vars.FEED_URL }}
 ```

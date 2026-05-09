@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Install in editable mode
 python3.13 -m venv .venv && source .venv/bin/activate && pip install -e .
 
-# Set up env (fill NVIDIA_API_KEY at minimum)
+# Set up env (fill LLM_API_KEY at minimum)
 cp .env.example .env
 
 # Run tests
