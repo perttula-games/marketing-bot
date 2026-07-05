@@ -6,7 +6,36 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-Platform = Literal["linkedin", "x", "instagram"]
+PublishPlatform = Literal["linkedin", "x", "instagram", "bluesky", "discord"]
+ContentPlatform = Literal[
+    "linkedin",
+    "x",
+    "bluesky",
+    "instagram",
+    "steam",
+    "discord",
+    "tiktok",
+    "youtube",
+    "reddit",
+    "jodel",
+]
+Platform = ContentPlatform
+CreatorChannel = Literal[
+    "steam",
+    "discord",
+    "tiktok",
+    "youtube",
+    "instagram",
+    "linkedin",
+    "reddit",
+    "twitch",
+    "jodel",
+    "assembly",
+    "lurkit",
+    "keymailer",
+    "epic",
+    "gog",
+]
 
 
 class Brief(BaseModel):
