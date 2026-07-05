@@ -247,10 +247,12 @@ def devlog(
     """
     from .devlog import (
         brief_from_devlog,
+        ensure_post_has_url,
         fetch_devlog_index,
         filter_published,
         filter_unseen,
         mark_seen,
+        strip_discord_self_promo,
     )
 
     items = fetch_devlog_index(site)
@@ -282,6 +284,9 @@ def devlog(
         console.rule(f"[bold]{item.title}[/bold] ([dim]{item.slug}[/dim])")
         brief = brief_from_devlog(item)
         bundle = generate_bundle(brief, wanted)
+        for post in bundle.posts:
+            strip_discord_self_promo(post)
+            ensure_post_has_url(post, item.url)
         _print_bundle(bundle)
         if publish:
             console.print(publish_bundle(bundle))

@@ -17,7 +17,7 @@ def test_discord_payload_includes_embed_image_and_link_button() -> None:
 
     assert payload["content"].startswith("Patch 0.4 Live")
     assert payload["allowed_mentions"] == {"parse": []}
-    assert payload["embeds"][0]["title"] == "Patch 0.4 Live"
+    assert "flags" not in payload
     assert payload["embeds"][0]["image"]["url"] == "https://cdn.example.com/patch-04.png"
     assert payload["components"][0]["components"][0]["url"] == "https://example.com/news"
 
@@ -27,7 +27,8 @@ def test_discord_payload_omits_button_when_no_url() -> None:
 
     payload = DiscordPublisher()._build_payload(post)
 
-    assert payload["embeds"][0]["title"] == "Patch note"
+    assert "flags" not in payload
+    assert "embeds" not in payload
     assert "components" not in payload
 
 

@@ -2,17 +2,24 @@
 
 from __future__ import annotations
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    # NVIDIA / Nemotron
-    nvidia_api_key: str = Field(default="", alias="NVIDIA_API_KEY")
-    nvidia_base_url: str = Field(default="https://integrate.api.nvidia.com/v1", alias="NVIDIA_BASE_URL")
-    nvidia_model: str = Field(default="nvidia/llama-3.3-nemotron-super-49b-v1", alias="NVIDIA_MODEL")
+    # LLM provider (OpenAI-compatible API).
+    # Prefer LLM_* names; NVIDIA_* are kept as backwards-compatible fallbacks.
+    llm_api_key: str = Field(default="", validation_alias=AliasChoices("LLM_API_KEY", "NVIDIA_API_KEY"))
+    llm_base_url: str = Field(
+        default="https://integrate.api.nvidia.com/v1",
+        validation_alias=AliasChoices("LLM_BASE_URL", "NVIDIA_BASE_URL"),
+    )
+    llm_model: str = Field(
+        default="nvidia/llama-3.3-nemotron-super-49b-v1",
+        validation_alias=AliasChoices("LLM_MODEL", "NVIDIA_MODEL"),
+    )
 
     # LinkedIn
     linkedin_access_token: str = Field(default="", alias="LINKEDIN_ACCESS_TOKEN")

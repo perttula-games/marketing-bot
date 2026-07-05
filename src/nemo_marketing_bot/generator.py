@@ -1,8 +1,8 @@
-"""Nemotron-powered content generator.
+"""LLM-powered content generator.
 
-Uses NVIDIA's OpenAI-compatible endpoint (integrate.api.nvidia.com) to call
-Nemotron models. Each platform has its own length/voice constraints, so we ask
-the model for a structured JSON response we can parse safely.
+Uses an OpenAI-compatible endpoint to call a configured model. Each platform
+has its own length/voice constraints, so we ask the model for a structured
+JSON response we can parse safely.
 """
 
 from __future__ import annotations
@@ -43,12 +43,12 @@ PLATFORM_RULES: dict[Platform, str] = {
     "steam": (
         "Steam Event / Announcement draft for an unreleased PC game. 500-1200 characters. "
         "Lead with the player-facing update, include 3 concrete bullets, and end with one "
-        "clear next step (read the devlog, join Discord, or play the demo). No sales hype."
+        "clear next step (read the devlog or join Discord). No sales hype."
     ),
     "discord": (
         "Discord community post. Hard 2000 character limit, preferred 300-900. "
-        "Friendly, direct, and specific. Use a short title line first, then body lines "
-        "with clear next steps and one lightweight CTA. Avoid @everyone and @here mentions."
+        "Friendly, direct, and specific. Use 4-7 short lines (no wall-of-text), with one "
+        "clear CTA and one link line. Avoid markdown headings and avoid @everyone/@here mentions."
     ),
     "tiktok": (
         "TikTok / Reels / Shorts short-form video script. 8-25 seconds. Include a first-second "
@@ -98,13 +98,13 @@ def _build_user_prompt(brief: Brief, platforms: list[Platform]) -> str:
 
 class ContentGenerator:
     def __init__(self) -> None:
-        if not settings.nvidia_api_key:
-            raise RuntimeError("NVIDIA_API_KEY is not set. See .env.example.")
+        if not settings.llm_api_key:
+            raise RuntimeError("LLM_API_KEY (or NVIDIA_API_KEY) is not set. See .env.example.")
         self._client = OpenAI(
-            api_key=settings.nvidia_api_key,
-            base_url=settings.nvidia_base_url,
+            api_key=settings.llm_api_key,
+            base_url=settings.llm_base_url,
         )
-        self._model = settings.nvidia_model
+        self._model = settings.llm_model
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10), reraise=True)
     def generate(self, brief: Brief, platforms: list[Platform]) -> PostBundle:
